@@ -21,14 +21,14 @@ void CheckArgc(VMCore& vm, std::size_t argc, std::size_t expected) {
 
     
 void CheckType(VMCore& vm, Value& value, ValueType expected) {
-    if (value.type != expected) {
+    if (value.Type() != expected) {
         TypeError(vm, Value::StringType(expected), value.StringType());
     }
 }
 
 
 void CheckType(VMCore& vm, Value& value, ObjType expected) {
-    if (!value.IsObj() || value.AsObj()->type != expected) {
+    if (!value.IsObj() || value.AsObj()->Type() != expected) {
         TypeError(vm, Value::StringType(expected), value.StringType());
     }
 }

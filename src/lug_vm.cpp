@@ -449,7 +449,7 @@ bool VMCore::CallValue(Value value, std::uint8_t argCount, std::uint8_t shared) 
         return false;
     }
 
-    switch (value.AsObj()->type) {
+    switch (value.AsObj()->Type()) {
         case ObjType::CLOSURE: {
             PushFrame(value.AsObj<ObjClosure>(), argCount, shared);
             return true;
@@ -1342,7 +1342,7 @@ void VMCore::Run() {
 
             Value newValue = stack.Peek(0);
 
-            switch (collection.AsObj()->type) {
+            switch (collection.AsObj()->Type()) {
                 case ObjType::LIST: {
                     // Lists must always have integers as indices.
                     if (!stack.Peek(1).IsInteger()) throw RuntimeError("list index must be an integer");

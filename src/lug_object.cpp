@@ -59,7 +59,7 @@ static T* AllocateObject(VMCore& vm) {
         "%p allocate %zu for %s\n", 
         static_cast<void*>(object), 
         object->size, 
-        Obj::StringType(object->type)
+        Obj::StringType(object->Type())
     );
 #endif
 
@@ -687,7 +687,7 @@ void ObjDict::Print() {
     for (std::size_t i = 0; i < entries.capacity; i++) {
         const Entry& entry = entries[i];
 
-        if (entry.key.type == ValueType::TOMBSTONE) continue;
+        if (entry.key.Type() == ValueType::TOMBSTONE) continue;
         if (entry.key.IsNil()) continue;
         
         Value::Print(entry.key);

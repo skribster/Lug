@@ -43,7 +43,7 @@ bool Table::Set(Value key, Value value) {
         t2.__proto__ <- nil
         print(getA())
     */
-    `if (isNewKey) vm.AdvanceEpoch();
+    if (isNewKey) vm.AdvanceEpoch();
 
     // If we reached a new key and it's NOT a tombstone,
     // increment the count. Tombstones have no effect
@@ -207,7 +207,7 @@ Entry* Table::FindEntry(const Value& key) const {
         if (entry->key == key) return entry;
 
         // Did we pass a tombstone?
-        if (entry->key.type == ValueType::TOMBSTONE) {
+        if (entry->key.Type() == ValueType::TOMBSTONE) {
             if (tombstone == nullptr) tombstone = entry;
         // We fonud an empty entry.
         } else if (entry->key.IsNil() && entry->value.IsNil()) {

@@ -37,6 +37,8 @@ struct Obj {
     virtual void Blacken(GC& gc) = 0;
     virtual Obj* Copy();
 
+    inline ObjType Type() const { return type; }
+
     static const char* StringType(ObjType type);
 
     VMCore& vm;
@@ -49,7 +51,7 @@ struct Obj {
 
 
 inline bool Value::IsObj(ObjType type) const {
-    return IsObj() && AsObj()->type == type;
+    return IsObj() && AsObj()->Type() == type;
 }
 
 

@@ -30,8 +30,10 @@ static std::uint32_t HashDouble(double value) {
 
 // Value methods ------------------------------
 
+#ifndef LUG_NAN_TAGGING
+
 bool Value::operator==(const Value& other) const {
-    if (type != other.type) return false;
+    if (type != other.Type()) return false;
 
     switch (type) {
         case ValueType::BOOLEAN: {
@@ -54,9 +56,32 @@ bool Value::operator==(const Value& other) const {
     }
 }
 
+#else 
+
+bool Value::operator==(const Value& other) const {
+    // This is to handle IEEE-754, which states that NaN
+    // values are not equal to themselves.
+    if (IsNumber() && other.IsNumber()) {
+        return AsNumber() == other.AsNumber(); 
+    }
+
+    return bits == other.bits;
+}
+
+
+inline ValueType Value::Type() const {
+    if (IsNumber()) return ValueType::NUMBER;
+    if (IsObj())    return ValueType::OBJ;
+    if (IsNil())    return ValueType::NIL;
+    if (IsBool())   return ValueType::BOOLEAN;
+    return ValueType::TOMBSTONE;
+}
+
+#endif
+
 
 void Value::Print(const Value& value) {
-    switch (value.type) {
+    switch (value.Type()) {
         case ValueType::NUMBER: {
             std::printf("%g", value.AsNumber());
             break;
@@ -90,9 +115,9 @@ void Value::Print(const Value& value) {
  */
 const char* Value::StringType() const {
     if (IsObj()) {
-        return Value::StringType(AsObj()->type);
+        return Value::StringType(AsObj()->Type());
     } else {
-        return Value::StringType(type);
+        return Value::StringType(Type());
     }
 }
 
@@ -117,7 +142,7 @@ const char* Value::StringType(ObjType type) {
 
 
 std::uint32_t Value::GetHash() const {
-    switch (type) {
+    switch (Type()) {
         case ValueType::BOOLEAN:    return AsBool() ? 3 : 5;
         case ValueType::NIL:        return 7;
         case ValueType::NUMBER:     return HashDouble(AsNumber());
@@ -130,7 +155,7 @@ std::uint32_t Value::GetHash() const {
 
 
 ObjString* Value::ToString(VMCore& vm) const {
-    switch (type) {
+    switch (Type()) {
         case ValueType::BOOLEAN: {
             return ObjString::FromLiteral(vm, AsBool() ? "true" : "false");
         }
@@ -151,7 +176,7 @@ ObjString* Value::ToString(VMCore& vm) const {
         }
 
         default: {
-            std::printf("unknown value type '%d'\n", static_cast<int>(type));
+            std::printf("unknown value type '%d'\n", static_cast<int>(Type()));
             UNREACHABLE();
         }
     }

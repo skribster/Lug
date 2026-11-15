@@ -1,6 +1,6 @@
 #pragma once
 
-// ESSENTIAL HEADERS -------------------------------------------
+// ESSENTIAL HEADERS ------------------------------------------------
 // std::uintx_t
 #include <cstdint>
 // std::size_t
@@ -8,8 +8,21 @@
 // std::abort, std::malloc, std::calloc, etc.
 #include <cstdlib>
 
-
 #define UINT8_COUNT UINT8_MAX + 1
+
+// IMPLEMENTATION FLAGS ---------------------------------------------
+
+// These flags change some of the detais in how the interpreter is
+// implemented. 
+
+// Set this to true if you want the language to use NaN-tagging. 
+// NaN-tagging is when you use a NaN-tagged double to represent its
+// dynamic Values, which acts a lot faster during runtime but sacrifices
+// some portability. If set to false, it will use a more conventional 
+// struct to hold a Value. 
+#ifndef LUG_NAN_TAGGING
+    #define LUG_NAN_TAGGING true
+#endif
 
 /*
     Set this on if you want the VM's interpreter loop to use computed gotos. 
@@ -20,12 +33,35 @@
     http://gcc.gnu.org/onlinedocs/gcc-3.1.1/gcc/Labels-as-Values.html
 */
 #ifndef LUG_COMPUTED_GOTO
-    #if defined(_MSC_VER)
-        #define LUG_COMPUTED_GOTO 0
+    #if defined(_MSC_VER) && !defined(__clang__)
+        #define LUG_COMPUTED_GOTO false
     #else
-        #define LUG_COMPUTED_GOTO 1
+        #define LUG_COMPUTED_GOTO true
     #endif
 #endif
+
+// DEBUG FLAGS ------------------------------------------------------
+
+// These flags are to be used only when working on the actual
+// source code, and not to be used in production or release builds.
+// These flags default to off.
+
+// Set this to true to log garbage collections as they occur.
+#define LUG_DEBUG_LOG_GC false
+
+// Set this to true to stress test the GC. This will perform a
+// collection before any allocation.
+#define LUG_DEBUG_STRESS_GC false
+
+// Set this to true to print the VM's stack state as it runs.
+#define LUG_DEBUG_TRACE_EXECUTION false
+
+// Set this to true to print out the compiled code of every chunk
+// as soon as it finishes compiling.
+#define LUG_DEBUG_PRINT_CODE false
+
+
+// OPTIMIZATION FLAGS -----------------------------------------------
 
 #if defined(__GNUC__) || defined(__clang__)
     #define LIKELY(x)   __builtin_expect(!!(x), 1)
@@ -45,27 +81,8 @@
 #endif
 
 
-// DEBUG FLAGS ------------------------------------------------------
-// These flags are to be used only when working on the actual
-// source code, and not to be used in production or release builds.
-// These flags default to off.
-
-// Set this to true to log garbage collections as they occur.
-#define LUG_DEBUG_LOG_GC false
-
-// Set this to true to stress test the GC. This will perform a
-// collection before any allocation.
-#define LUG_DEBUG_STRESS_GC false
-
-// Set this to true to print the VM's stack state as it runs.
-#define LUG_DEBUG_TRACE_EXECUTION false
-
-// Set this to true to print out the compiled code of every chunk
-// as soon as it finishes compiling.
-#define LUG_DEBUG_PRINT_CODE false
-
 #ifndef NDEBUG
-    #include <cstdio>
+#include <cstdio>
 
     #define LUG_ASSERT(condition, message)                                              \
         do                                                                              \
