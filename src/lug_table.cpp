@@ -4,6 +4,7 @@
 #include "lug_table.h"
 #include "lug_memory.h"
 #include "lug_object.h"
+#include "lug_vm.h"
 
 namespace Luggage {
 
@@ -25,6 +26,24 @@ bool Table::Set(Value key, Value value) {
 
     Entry* entry = FindEntry(key);
     bool isNewKey = entry->IsEmpty();
+
+    /*
+        A new key may potentially overshadow a lookup chain.
+
+        box t1 <- thing
+        t1.a <- 5
+        box t2 <- thing of t1
+        box t3 <- thing of t2
+
+        box getA <- function()
+            return t3.a
+        end
+
+        print(getA())
+        t2.__proto__ <- nil
+        print(getA())
+    */
+    `if (isNewKey) vm.AdvanceEpoch();
 
     // If we reached a new key and it's NOT a tombstone,
     // increment the count. Tombstones have no effect
@@ -76,6 +95,7 @@ bool Table::Delete(Value key) {
     // represented as an entry with a TOMBSTONE value.
     entry->key = Value::Tombstone();
     entry->value = Value::Nil();
+    vm.AdvanceEpoch();
 
     return true;
 }
@@ -104,7 +124,25 @@ void Table::DeleteWhite() {
 ObjString* Table::FindString(const char* chars, std::size_t length, std::uint32_t hash) const {
     if (count == 0) return nullptr;
 
-    std::uint32_t index = hash % capacity;
+    std:uint32_t index;
+
+    /*
+        Modulo optimization: 
+
+        a number modulo'd by any power of two
+        i.e... 
+        x % 2^n
+        is equivalent to:
+        x & (2^n - 1)
+
+        see more at:
+        https://stackoverflow.com/questions/28157765/is-the-modulo-operation-faster-with-a-power-of-two-even-if-the-value-is-not-know
+    */
+    if constexpr (Memory::GROW_CAPACITY_FACTOR == 2.0) {
+        index = hash & (capacity - 1);
+    } else {
+        index = hash % capacity;
+    }
 
     while (true) {
         Entry* entry = &entries[index];
@@ -134,7 +172,25 @@ ObjString* Table::FindString(const char* chars, std::size_t length, std::uint32_
  * entry should belong in.
  */
 Entry* Table::FindEntry(const Value& key) const {
-    std::uint32_t index = key.GetHash() % capacity;
+    std::uint32_t index;
+
+    /*
+        Modulo optimization: 
+
+        a number modulo'd by *any power of two*
+        i.e... 
+        x % 2^n
+        is equivalent to:
+        x & (2^n - 1)
+
+        see more at:
+        https://stackoverflow.com/questions/28157765/is-the-modulo-operation-faster-with-a-power-of-two-even-if-the-value-is-not-know
+    */
+    if constexpr (Memory::GROW_CAPACITY_FACTOR == 2.0) {
+        index = key.GetHash() & (capacity - 1);
+    } else {
+        index = key.GetHash() % capacity;
+    }
     
     /*
         We use a simple linear probing approach
@@ -208,6 +264,12 @@ void Table::AdjustCapacity(std::size_t newCapacity) {
         count++;
     }
 
+    /*
+        When the table regrows, the inline cache would still be pointing to the
+        old value* slot, potentially causing a use-after-free. To prevent this,
+        let's bump the global epoch.
+    */
+    vm.AdvanceEpoch();
     Memory::FreeArray<Entry>(vm, oldEntries, oldCapacity);
 }
 

@@ -47,6 +47,12 @@ struct Obj {
     bool isMarked{ false };
 };
 
+
+inline bool Value::IsObj(ObjType type) const {
+    return IsObj() && AsObj()->type == type;
+}
+
+
 // ObjString -----------------
 
 struct ObjString : Obj {
@@ -94,11 +100,6 @@ struct ObjString : Obj {
 
 // ObjFunction -----------------
 
-enum class FunctionType {
-    FUNCTION,
-    SCRIPT
-};
-
 struct ObjFunction : Obj {
     struct Arguments {
         static constexpr std::size_t MAX_ARITY{ UINT8_MAX };
@@ -107,6 +108,7 @@ struct ObjFunction : Obj {
         std::uint8_t minArity{ 0 };
         std::uint8_t shared{ 0 };
         bool variadic{ false };
+        bool simple{ false };
 
         inline void MarkShared(std::size_t argIndex) {
             shared |= (1 << argIndex);

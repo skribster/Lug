@@ -30,11 +30,6 @@ static std::uint32_t HashDouble(double value) {
 
 // Value methods ------------------------------
 
-bool Value::IsObj(ObjType type) const {
-    return IsObj() && AsObj()->type == type;
-}
-
-
 bool Value::operator==(const Value& other) const {
     if (type != other.type) return false;
 

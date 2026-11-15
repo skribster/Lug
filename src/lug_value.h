@@ -67,7 +67,8 @@ public:
     inline bool IsObj() const           { return type == ValueType::OBJ; }
     inline bool IsTombstone() const     { return type == ValueType::TOMBSTONE; }
     
-    bool IsObj(ObjType type) const;
+    // Defined in lug_object.h
+    inline bool IsObj(ObjType type) const;
 
     // I like the convention of passing in the value to Print()
     // because it looks better..........

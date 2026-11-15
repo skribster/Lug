@@ -141,7 +141,7 @@ static Value Index(VMCore& vm, Value* args, std::size_t argCount) {
 
     for (int i = 0; i < list->Count(); i++) {
         const Value* item = list->Get(i);
-        ASSERT(item != nullptr, "index has gone out of bounds");
+        LUG_ASSERT(item != nullptr, "index has gone out of bounds");
         if (*item == value) return i;
     }
 

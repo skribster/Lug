@@ -72,7 +72,12 @@ struct Stack {
     }
 
     inline Value& Peek(std::size_t distance) const {
-        return top[-1 - distance];
+        /*
+            Clang-cl doesn't like it when I did top[-1 - distance] :(
+            it wraps around to a really huge positive number which did
+            some really wacky stuff and was a headache to figure out
+        */
+        return *(top - 1 - distance);
     }
 
     inline Value Pop() {
@@ -95,7 +100,9 @@ public:
     void CollectGarbage();
     void MarkRoots();
     
-    void PushFrame(ObjClosure* closure, std::uint8_t argCount, std::uint8_t shared);
+    inline void PushFrame(ObjClosure* closure, std::uint8_t argCount, std::uint8_t shared);
+    NO_INLINE void PushFrameSlow(ObjClosure* closure, std::uint8_t argCount, std::uint8_t shared);
+
     bool CallValue(Value value, std::uint8_t argCount, std::uint8_t shared);
     void Call(ObjClosure* closure, std::uint8_t argCount, std::uint8_t shared = 0);
     ObjUpvalue* CaptureUpvalue(Value* local);
@@ -109,6 +116,8 @@ public:
 
     template<typename... Args>
     std::string ErrorMessage(const char* kind, const char* format, Args... args);
+
+    inline void AdvanceEpoch() { globalEpoch++; }
     
     // Member variables -------------------
     Compiler compiler;
@@ -129,6 +138,8 @@ private:
     LugError lastError;
     LugError memoryError;
 
+    std::uint64_t globalEpoch{ 0 };
+
     friend class VM;
 };
 
@@ -137,7 +148,7 @@ template<typename... Args>
 std::string VMCore::ErrorMessage(const char* kind, const char* format, Args... args) {
     // Compute required length for the std::string
     int length = std::snprintf(nullptr, 0, format, args...);
-    ASSERT(length, "snprintf formatting error");
+    LUG_ASSERT(length, "snprintf formatting error");
     // Allocate exactly enough space
     std::string formatted(length, '\0');
     // Format the error message with the args

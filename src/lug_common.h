@@ -20,12 +20,30 @@
     http://gcc.gnu.org/onlinedocs/gcc-3.1.1/gcc/Labels-as-Values.html
 */
 #ifndef LUG_COMPUTED_GOTO
-    #if defined(_MSC_VER) && !defined(__clang__)
+    #if defined(_MSC_VER)
         #define LUG_COMPUTED_GOTO 0
     #else
         #define LUG_COMPUTED_GOTO 1
     #endif
 #endif
+
+#if defined(__GNUC__) || defined(__clang__)
+    #define LIKELY(x)   __builtin_expect(!!(x), 1)
+    #define UNLIKELY(x) __builtin_expect(!!(x), 0)
+    
+#else
+    #define LIKELY(x)   (x)
+    #define UNLIKELY(x) (x)
+#endif
+
+#if defined(_MSC_VER)
+    #define NO_INLINE __declspec(noinline)
+#elif defined(__GNUC__) || defined(__clang__)
+    #define NO_INLINE [[gnu::noinline]]
+#else
+    #define NO_INLINE
+#endif
+
 
 // DEBUG FLAGS ------------------------------------------------------
 // These flags are to be used only when working on the actual
@@ -49,7 +67,7 @@
 #ifndef NDEBUG
     #include <cstdio>
 
-    #define ASSERT(condition, message)                                                  \
+    #define LUG_ASSERT(condition, message)                                              \
         do                                                                              \
         {                                                                               \
             if (!(condition))                                                           \
@@ -69,14 +87,14 @@
         } while (false)
     
 #else
-    #define ASSERT(condition, message) /* empty */
+    #define LUG_ASSERT(condition, message) /* empty */
     
     #if defined(_MSC_VER) && !defined(__clang__) // MSVC
         #define UNREACHABLE() __assume(false);
     #elif defined(__GNUC__) || defined(__clang__) // GCC, Clang
         #define UNREACHABLE() __builtin_unreachable();
     #else
-        #define UNREACHABLE() /* empty */
+        #define UNREACHABLE
     #endif
 
 #endif

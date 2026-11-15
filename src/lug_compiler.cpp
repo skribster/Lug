@@ -699,11 +699,11 @@ void Compiler::PatchPlaceholders(std::size_t firstPlaceholder, OpCode::Type inst
         // The past operand was how many bytes the next break statement was
         // relative to the current one we're on. 
         int nextPlaceholder = currentPlaceholder - operand;
-        ASSERT(nextPlaceholder > 0, "next-break index in the patch loop is negative");
+        LUG_ASSERT(nextPlaceholder > 0, "next-break index in the patch loop is negative");
         currentPlaceholder = nextPlaceholder;
 
         bool isPlaceholder = chunk.bytecode[nextPlaceholder] == OpCode::PLACEHOLDER;
-        ASSERT(isPlaceholder, "op_placeholder index led to a non-placeholder opcode");
+        LUG_ASSERT(isPlaceholder, "op_placeholder index led to a non-placeholder opcode");
     }
 }
 
@@ -992,7 +992,7 @@ void Compiler::CountStatement() {
     DefineVariable(counterVariable);
     
     int counter = currentUnit->ResolveLocal(parser.previous);
-    ASSERT(counter != -1, "counter's slot is -1 and cannot be found");
+    LUG_ASSERT(counter != -1, "counter's slot is -1 and cannot be found");
     
     // Start --------------------------
     parser.Consume(TokenType::FROM, "expected 'from' after incrementer name");
@@ -1440,6 +1440,7 @@ void Compiler::DotExpr(bool canAssign) {
         isValidExprStmt = true;
     } else {
         EmitShortable(OpCode::GET_ATTRIBUTE, nameConstant);
+        EmitShort(currentUnit->function->chunk.AddCache());
         MarkGetter();
         isValidExprStmt = false;
     }
@@ -1781,6 +1782,13 @@ void Compiler::ParameterList(ObjFunction* function) {
         // An args... left out will just be filled in with an empty list.
         function->MarkDefault();
     }
+
+    // If a function doesn't have any shared args, variadic args, etc.
+    // we can mark it as "simple" to let the vm optimize a call during
+    // runtime.
+    if (!parameters.shared && !parameters.variadic && parameters.minArity == parameters.arity) {
+        parameters.simple = true;
+    }
 }
 
 
@@ -1987,7 +1995,7 @@ void Compiler::ParsePrecedence(Precedence minimumPrecedence) {
     while (GetRule(parser.current.type).precedence >= minimumPrecedence) {
         parser.Advance();
         ParseFn infixRule = GetRule(parser.previous.type).infix;
-        ASSERT(infixRule != nullptr, "infix rule is not defined");
+        LUG_ASSERT(infixRule != nullptr, "infix rule is not defined");
         (this->*infixRule)(canAssign);
     }
 

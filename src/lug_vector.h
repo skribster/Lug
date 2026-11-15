@@ -131,7 +131,7 @@ public:
         Clear();
         Memory::FreeArray(vm, data, capacity);
 
-        ASSERT(&vm == &other.vm, "can't move-assign vectors with different VMs");
+        LUG_ASSERT(&vm == &other.vm, "can't move-assign vectors with different VMs");
         data = other.data;
         count = other.count;
         capacity = other.capacity;
@@ -182,7 +182,7 @@ public:
     }
 
     void Insert(std::size_t index, const T& value) {
-        ASSERT(index <= count, "index out of range");
+        LUG_ASSERT(index <= count, "index out of range");
 
         T copy = value;
         if (count >= capacity) Reallocate(Memory::GrowCapacity(capacity));
@@ -220,7 +220,7 @@ public:
     } 
 
     void Erase(std::size_t index) {
-        ASSERT(index < count, "index out of range");
+        LUG_ASSERT(index < count, "index out of range");
         
         data[index].~T();
         for (int i = index; i < count - 1; i++) {
@@ -275,12 +275,12 @@ public:
     // Index operator ------------------
 
     T& operator[](std::size_t index) {
-        ASSERT(index < count, "index out of range");
+        LUG_ASSERT(index < count, "index out of range");
         return data[index];
     }
 
     const T& operator[](std::size_t index) const {
-        ASSERT(index < count, "index out of range");
+        LUG_ASSERT(index < count, "index out of range");
         return data[index];
     }
 

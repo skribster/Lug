@@ -20,7 +20,7 @@ namespace Luggage {
  * A value is falsy if it's explicitly set as 'nil' or 'false'.
  * Anything else is truthy.
  */
-static bool IsFalsy(Value value) {
+static inline bool IsFalsy(Value value) {
     return value.IsNil() || value.IsBool() && !value.AsBool();
 }
 
@@ -285,64 +285,80 @@ void VMCore::MarkRoots() {
 }
 
 
-void VMCore::PushFrame(ObjClosure* closure, std::uint8_t argCount, std::uint8_t sharedMask) {
+inline void VMCore::PushFrame(ObjClosure* closure, std::uint8_t argCount, std::uint8_t sharedMask) {
+    const ObjFunction::Arguments& parameters = closure->function->parameters;
+
+    // Hot path ---------------------------------
+
+    if (LIKELY(parameters.simple && parameters.arity == argCount && stack.frameCount < Stack::FRAMES_MAX)) {
+        stack.AddFrame(closure, stack.top - argCount - 1);
+        return;
+    }
+
+    PushFrameSlow(closure, argCount, sharedMask);
+}
+
+
+NO_INLINE void VMCore::PushFrameSlow(ObjClosure* closure, std::uint8_t argCount, std::uint8_t sharedMask) {
     const ObjFunction::Arguments& parameters = closure->function->parameters;
 
     // Check arity ------------------------------
-    /**
-     * Errors at:
-     * box a <- function(a, b) end
-     * a(1)
-     */
+    /*
+        Errors at:
+        box a <- function(a, b) end
+        a(1)
+    */
     if (!parameters.variadic && argCount != parameters.arity && parameters.arity == parameters.minArity) {
         throw RuntimeError("expected %d argument(s) but got %d", parameters.arity, argCount);
     }
 
-    /**
-     * Errors at:
-     * box a <- function(a, b, c <- 2) end
-     * a(1)
-     */
+    /*
+        Errors at:
+        box a <- function(a, b, c <- 2) end
+        a(1)
+    */
     if (argCount < parameters.minArity) {
         throw RuntimeError("expected at least %d argument(s) but got %d", parameters.minArity, argCount);
     }
 
-    /**
-     * Errors at:
-     * box a <- function(a <- 1, b <- 2) end
-     * a(1, 2, 3)
-     */
+    /*
+        Errors at:
+        box a <- function(a <- 1, b <- 2) end
+        a(1, 2, 3)
+    */
     else if (argCount > parameters.arity && !parameters.variadic) {
-        throw RuntimeError("expcted at most %d argument(s) but got %d", parameters.arity, argCount);
+        throw RuntimeError("expected at most %d argument(s) but got %d", parameters.arity, argCount);
     }
 
     // Handle varargs ---------------------------
-    
+
     // If we have any varargs, we will pack all the 
     // extra args into a list.
     int numVarargs = std::max(argCount - parameters.arity, 0);
     if (parameters.variadic && numVarargs > 0) {
         ObjList* packed = ObjList::New(*this);
-        
+
         for (int i = 0; i < numVarargs; i++) {
             Value arg = stack.Peek(0);
-            
+
             stack.Push(packed);
             packed->Insert(0, arg);
             stack.Pop(); // list
-            
+
             stack.Pop(); // arg
         }
-        
+
         stack.Push(packed);
     }
-    
+
     // Handle shared ----------------------------
-    
-    // If the 'shared' parameters don't align, we error.
-    // The argCountMask is to make sure that this only checks for
-    // the arguments we passed IN. If we had a shared default argument
-    // and we don't supply it in the call site, we don't want to error.
+
+    /*
+        If the 'shared' parameters don't align, we error.
+        The argCountMask is to make sure that this only checks for
+        the arguments we passed IN. If we had a shared default argument
+        and we don't supply it in the call site, we don't want to error.
+    */
     std::uint8_t argCountMask = argCount >= 8 ? 0xFF : (1u << (argCount)) - 1;
     std::uint8_t masked = parameters.shared & ~sharedMask & argCountMask;
 
@@ -350,13 +366,13 @@ void VMCore::PushFrame(ObjClosure* closure, std::uint8_t argCount, std::uint8_t 
         int index = CountTrailingZeroes(masked);
         throw RuntimeError("expected a shared argument at argument %d", index + 1);
     }
-    
+
     if (stack.frameCount == Stack::FRAMES_MAX) {
         throw RuntimeError("stack overflow");
     }
-    
+
     // Handle default args ----------------------
-    
+
     int numOmitted = std::max(parameters.arity - argCount, 0);
     // We'll also account for the varargs and say that it's technically
     // another parameter that we omitted. 
@@ -364,7 +380,7 @@ void VMCore::PushFrame(ObjClosure* closure, std::uint8_t argCount, std::uint8_t 
 
     const Vector<std::size_t>& defaults = closure->function->defaults;
     int startOffset = 0;
-    
+
     /*
         The start offset of the function is determined by how many parameters
         have been omitted. Recall that a function has a prebody to fill in
@@ -388,12 +404,12 @@ void VMCore::PushFrame(ObjClosure* closure, std::uint8_t argCount, std::uint8_t 
      */
     if (defaults.Count() > 0) {
         startOffset = defaults[defaults.Count() - numOmitted - 1];
-    } 
+    }
 
     if (parameters.variadic && numVarargs > 0) {
         /*
             If we have function a:
-            box a <- function(req, args...) end 
+            box a <- function(req, args...) end
 
             And we pass in 1, 2, 3 as varargs to a function:
             [ <fn a >][ "required" ][ 1 ][ 2 ][ 3 ]
@@ -406,7 +422,7 @@ void VMCore::PushFrame(ObjClosure* closure, std::uint8_t argCount, std::uint8_t 
             argCount = argCount - numVarargs (3) + 1 (the list)
          */
         argCount = argCount - numVarargs + 1;
-    } 
+    }
     /*
         The -1 is to account for stack slot zero, which we use
         to hold the function object on the stack.
@@ -428,43 +444,47 @@ void VMCore::PushFrame(ObjClosure* closure, std::uint8_t argCount, std::uint8_t 
  * Returns whether a new stack frame was pushed.
  */
 bool VMCore::CallValue(Value value, std::uint8_t argCount, std::uint8_t shared) {
-    if (value.IsObj()) {
-        switch (value.AsObj()->type) {
-            case ObjType::CLOSURE: {
-                PushFrame(value.AsObj<ObjClosure>(), argCount, shared);
-                return true;
-            }
-            
-            case ObjType::NATIVE: {               
-                ObjNative* native = value.AsObj<ObjNative>();
-                Value result = native->function(*this, stack.top - argCount, argCount);
-                
-                // Rewind the stack right before the ObjNative.
-                stack.top -= argCount + 1;
-                
-                // Push the result of the function.
-                stack.Push(result);
-                return false;
-            }
-            
-            case ObjType::THING: {
-                // Check if the 'thing' has a '__call__' dunder 
-                // attached to it.
-                ObjThing* thing = value.AsObj<ObjThing>();
-                const Value* callDunder = thing->Get("__call__");
-                if (callDunder == nullptr) break;
-                
-                return CallValue(*callDunder, argCount, shared);
-            }
+    if (!value.IsObj()) {
+        throw RuntimeError("attempted to call a '%s' value", value.StringType());
+        return false;
+    }
 
-            default: {
-                ObjThing* valueProto = GetProtoOf(value);
-                if (valueProto != nullptr) return CallValue(valueProto, argCount, shared);
-            }
+    switch (value.AsObj()->type) {
+        case ObjType::CLOSURE: {
+            PushFrame(value.AsObj<ObjClosure>(), argCount, shared);
+            return true;
+        }
+            
+        case ObjType::NATIVE: {               
+            ObjNative* native = value.AsObj<ObjNative>();
+            Value result = native->function(*this, stack.top - argCount, argCount);
+                
+            // Rewind the stack right before the ObjNative.
+            stack.top -= argCount + 1;
+                
+            // Push the result of the function.
+            stack.Push(result);
+            return false;
+        }
+            
+        case ObjType::THING: {
+            // Check if the 'thing' has a '__call__' dunder 
+            // attached to it.
+            ObjThing* thing = value.AsObj<ObjThing>();
+            const Value* callDunder = thing->Get("__call__");
+            if (callDunder == nullptr) break;
+                
+            return CallValue(*callDunder, argCount, shared);
+        }
+
+        default: {
+            ObjThing* valueProto = GetProtoOf(value);
+            if (valueProto != nullptr) return CallValue(valueProto, argCount, shared);
+            return false;
         }
     }
-    
-    throw RuntimeError("attempted to call a '%s' value", value.StringType());
+
+    return false;
 }
 
 
@@ -858,9 +878,9 @@ void VMCore::Run() {
 
             // COUNT_PREP should've already checked if these were numbers or not.
             // If we still have them as not a number, then we should assert.
-            ASSERT(start.IsNumber(), "invalid start");
-            ASSERT(limit.IsNumber(), "invalid limit");
-            ASSERT(step.IsNumber(), "invalid step");   
+            LUG_ASSERT(start.IsNumber(), "invalid start");
+            LUG_ASSERT(limit.IsNumber(), "invalid limit");
+            LUG_ASSERT(step.IsNumber(), "invalid step");   
 
             // Increment index.
             start = start.AsNumber() + step.AsNumber();
@@ -903,7 +923,7 @@ void VMCore::Run() {
 
                 // list->Get may return nullptr if the index is out of range.
                 const Value* listValue = list->Get(key.AsNumber());
-                ASSERT(listValue != nullptr, "the foreach index is out of range");
+                LUG_ASSERT(listValue != nullptr, "the foreach index is out of range");
                 value = *listValue;
             } 
             
@@ -960,7 +980,7 @@ void VMCore::Run() {
                     // In case we screwed something up by letting the index go out of
                     // range of the list, causing list->Get to return nullptr, we assert
                     const Value* listValue = list->Get(key.AsNumber());
-                    ASSERT(listValue != nullptr, "the foreach index is out of range");
+                    LUG_ASSERT(listValue != nullptr, "the foreach index is out of range");
                     value = *listValue;
 
                     JUMP_BACKWARD(jumpToStart);
@@ -970,7 +990,7 @@ void VMCore::Run() {
             else if (iterable.IsObj(ObjType::DICT)) {
                 ObjDict* dict = iterable.AsObj<ObjDict>();
                 Value& probingIndex = stack.Peek(3);
-                ASSERT(probingIndex.IsInteger(), "invalid type for probing index");
+                LUG_ASSERT(probingIndex.IsInteger(), "invalid type for probing index");
 
                 std::size_t index = static_cast<std::size_t>(probingIndex.AsInteger());
                 do index++; while (
@@ -988,14 +1008,14 @@ void VMCore::Run() {
             }
             
             else {
-                ASSERT(false, "invalid iterable");
+                LUG_ASSERT(false, "invalid iterable");
             }
 
             DISPATCH();
         }
 
         CASE(PLACEHOLDER): {
-            ASSERT(false, "placeholder found during runtime");
+            LUG_ASSERT(false, "placeholder found during runtime");
         }
         
         CASE(POP): {
@@ -1364,23 +1384,34 @@ void VMCore::Run() {
 
         CASE(GET_ATTRIBUTE): {
             ObjString* attributeName = READ_STRING();
+            std::uint16_t cacheId = READ_SHORT();
+            AttributeCache& cache = frame->closure->function->chunk.attributeCaches[cacheId];
 
+            const Value& receiver = stack.Peek(0);
+            if (receiver.IsObj() && receiver.AsObj() == cache.receiver && globalEpoch == cache.cachedEpoch) {
+                stack.Pop(); // Receiver
+                stack.Push(*cache.value);
+                DISPATCH();
+            } 
+            
             if (stack.Peek(0).IsObj(ObjType::CATEGORY)) {
                 ObjCategory* category = stack.Peek(0).AsObj<ObjCategory>();
                 const Value* type = category->GetType(attributeName);
                 if (type == nullptr) {
                     throw RuntimeError("type '%s' does not exist in category", attributeName->characters);
                 }
-
+                
                 stack.Pop(); // Category
                 stack.Push(*type);
 
+                cache = { category, globalEpoch, type };
                 DISPATCH();
             }
-
+            
             if (stack.Peek(0).IsObj(ObjType::THING)) {
                 ObjThing* thing = stack.Peek(0).AsObj<ObjThing>();
                 const Value* value = thing->Get(attributeName);
+
                 if (value == nullptr) {
                     throw RuntimeError("thing has no attribute named '%s'", attributeName->characters);
                 }
@@ -1388,12 +1419,13 @@ void VMCore::Run() {
                 stack.Pop(); // Thing
                 stack.Push(*value);
 
+                cache = { thing, globalEpoch, value };
+                
                 DISPATCH();
             }
 
             ObjThing* proto = GetProtoOf(stack.Peek(0));
-            if (proto && proto->Get(attributeName) != nullptr) {
-                const Value* value = proto->Get(attributeName);
+            if (const Value* value = proto->Get(attributeName)) {
                 if (value == nullptr) {
                     throw RuntimeError("could not find '%s' in value", attributeName->characters);
                 }
@@ -1516,7 +1548,7 @@ void VMCore::Run() {
         }
     }
 
-    ASSERT(false, "Unknown opcode.");
+    LUG_ASSERT(false, "Unknown opcode.");
 
     #undef READ_BYTE
     #undef READ_STRING

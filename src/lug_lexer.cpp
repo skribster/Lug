@@ -271,7 +271,7 @@ bool Lexer::Match(char expected) {
 
 // Lexer public methods -----------------------------
 Token Lexer::ScanToken() {
-    ASSERT(start != nullptr && current != nullptr, "lexer not initialized with source code");
+    LUG_ASSERT(start != nullptr && current != nullptr, "lexer not initialized with source code");
 
     /*
         In a tree-walk interpreter, we could account

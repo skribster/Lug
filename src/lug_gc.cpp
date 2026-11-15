@@ -148,6 +148,14 @@ void GC::FreeObject(Obj* obj) {
     std::size_t size = obj->size; 
     obj->~Obj();
     Memory::Reallocate(vm, obj, size, 0);
+
+    /*
+        If an object is collected, and another object somehow
+        gets allocated at that exact same memory spot, the inline cache
+        would point to the wrong object. To prevent this, we will advance
+        the global epoch.
+    */
+    vm.AdvanceEpoch();
 }
 
 

@@ -15,7 +15,7 @@ static std::string FormatString(const char* format, va_list args) {
     const int length = std::vsnprintf(nullptr, 0, format, sizeArgs);
     va_end(sizeArgs);
     if (length < 0) {
-        ASSERT(false, "error message formatting failed");
+        LUG_ASSERT(false, "error message formatting failed");
     }
 
     std::string message(static_cast<std::size_t>(length) + 1, '\0');
@@ -24,7 +24,7 @@ static std::string FormatString(const char* format, va_list args) {
     const int formattedLength = std::vsnprintf(message.data(), message.size(), format, formatArgs);
     va_end(formatArgs);
     if (formattedLength < 0) {
-        ASSERT(false, "error message formatting failed");
+        LUG_ASSERT(false, "error message formatting failed");
     }
 
     message.resize(static_cast<std::size_t>(formattedLength));

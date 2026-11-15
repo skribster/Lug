@@ -84,7 +84,17 @@ Chunk::ConstantIndex Chunk::AddConstant(Value value) {
     vm.stack.Pop();
 
     return constants.Count() - 1;
-}   
+}
+
+
+std::uint16_t Chunk::AddCache() {
+    if (attributeCaches.Count() == UINT16_MAX) {
+        throw vm.RuntimeError("too many attribute getters in one function");
+    }
+
+    attributeCaches.EmplaceBack();
+    return attributeCaches.Count() - 1;
+}
 
 /**
  * Returns the line of a byte in the bytecode stream,

@@ -9,6 +9,7 @@ namespace Luggage {
 
 namespace Luggage::Memory {
 
+inline constexpr double GROW_CAPACITY_FACTOR = 2.0;
 
 /**
  * The 'god' function of reallocating memory on the heap.
@@ -65,7 +66,7 @@ void Free(VMCore& vm, T* pointer) {
  * 8 elements.
  */
 constexpr std::size_t GrowCapacity(std::size_t capacity) {
-    return capacity < 8 ? 8 : capacity * 2;
+    return capacity < 8 ? 8 : capacity * GROW_CAPACITY_FACTOR;
 }
 
 }

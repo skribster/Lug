@@ -1,5 +1,12 @@
-box a <- function(b, shared c)
-    print(b, c)
+box t1 <- thing
+t1.a <- 5
+box t2 <- thing of t1
+box t3 <- thing of t2
+
+box getA <- function()
+    return t3.a
 end
 
-a(1, share 2)g
+print(getA())
+t2.__proto__ <- nil
+print(getA())

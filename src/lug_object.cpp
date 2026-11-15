@@ -72,7 +72,7 @@ static T* AllocateObject(VMCore& vm) {
  * range of 0-numItems.
  */
 static inline int ClampIndex(int index, int numItems) {
-    ASSERT(numItems != 0, "numItems is zero");
+    LUG_ASSERT(numItems != 0, "numItems is zero");
     return ((index % numItems) + numItems) % numItems; 
 }
 
@@ -245,7 +245,7 @@ ObjString* ObjString::FromFormat(VMCore& vm, const char* format, ...) {
 
     int sizeNeeded = std::vsnprintf(nullptr, 0, format, args);
     va_end(args);
-    ASSERT(sizeNeeded >= 0, "vsnprintf formatting error");
+    LUG_ASSERT(sizeNeeded >= 0, "vsnprintf formatting error");
 
     std::size_t size = static_cast<std::size_t>(sizeNeeded) + 1;
     char* formatted = Memory::Allocate<char>(vm, size);
@@ -832,6 +832,13 @@ const Value* ObjThing::Get(const char* attribute) const {
 
 
 void ObjThing::Set(ObjString* attribute, Value value) {
+    // Setting a proto may break the lookup chain. In this 
+    // case we don't want to let the inline cache point to 
+    // the past value when it's already been broken.
+    if (attribute->characters == "__proto__") {
+        vm.AdvanceEpoch();
+    }
+
     attributes.Set(attribute, value);
 }
 
