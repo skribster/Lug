@@ -6,6 +6,6 @@
 namespace Luggage::Debug {
 
 void DisassembleChunk(Chunk& chunk, const char* name);
-std::size_t DisassembleInstruction(Chunk& chunk, std::size_t offset);
+std::size_t DisassembleInstruction(Chunk& chunk, std::size_t offset, bool isShort = false);
 
 }
