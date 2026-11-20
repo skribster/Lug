@@ -4,7 +4,7 @@
 
 #include "lug_value.h"
 
-namespace Luggage::Lib {
+namespace Lug::Lib {
     
 // List methods ---------------------------------
 

@@ -1,7 +1,7 @@
 #include "lug_stdlib.h"
 
 
-namespace Luggage::Lib {
+namespace Lug::Lib {
 
 ObjThing* NewLib(VMCore& vm, const char* libraryName) {
     ObjThing* library = ObjThing::New(vm);

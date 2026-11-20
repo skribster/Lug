@@ -5,7 +5,7 @@
 #include "lug_table.h"
 #include "lug_vector.h"
 
-namespace Luggage { 
+namespace Lug { 
 
 // Forward declarations so C++ doesn't get mad at me
 class VMCore; 

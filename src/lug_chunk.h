@@ -8,7 +8,7 @@
 // Forward declaration for VMCore since
 // we need it for memory operations
 
-namespace Luggage {
+namespace Lug {
     
 class VMCore;
 struct ObjThing;

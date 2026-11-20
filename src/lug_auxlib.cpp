@@ -1,7 +1,7 @@
 #include "lug_auxlib.h"
 
 
-namespace Luggage::Lib {
+namespace Lug::Lib {
 
 [[noreturn]] void ArgcError(VMCore& vm, std::size_t expected, std::size_t got) {
     throw vm.RuntimeError("expected %zu argument(s), got %zu", expected, got);

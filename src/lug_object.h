@@ -7,8 +7,9 @@
 #include "lug_chunk.h"
 #include "lug_table.h"
 #include "lug_memory.h"
+#include "lug.hpp"
 
-namespace Luggage {
+namespace Lug {
 
 // Forward declaration so C++ doesn't get mad at me
 class VMCore;
@@ -198,9 +199,11 @@ struct ObjNative : Obj {
     void Blacken(GC& gc) override {};
 
     NativeFn function{ nullptr };
+    Function userFunction{ nullptr }; // defined in lug.hpp, a third party function defined by the user using the Lug API
     const char* name;
 
     static ObjNative* New(VMCore& vm, const char* name, NativeFn function);
+    static ObjNative* New(VMCore& vm, const char* name, Function function);
 };
 
 // ObjList -----------------

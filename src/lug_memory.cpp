@@ -1,14 +1,14 @@
 #include <memory>
 
 #include "lug_memory.h"
-#include "lug_vm.h"
+#include "lug_vmcore.h"
 
 #if LUG_DEBUG_LOG_GC
     #include <cstdio>
     #include "lug_debug.h"
 #endif
 
-namespace Luggage::Memory {
+namespace Lug::Memory {
 
 void* Reallocate(VMCore& vm, void* pointer, std::size_t oldSize, std::size_t newSize) {
     GC& gc = vm.gc;

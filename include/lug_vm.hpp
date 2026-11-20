@@ -7,7 +7,9 @@
 #include <functional>
 #include <optional>
 
-namespace Luggage {
+#include "lug_variant.hpp"
+
+namespace Lug {
 
 enum class InterpretResult {
     OK,
@@ -45,6 +47,7 @@ struct LugError {
     InterpretResult type;
     std::string message;
     int line;
+    int column;
 };  
 
 
@@ -67,7 +70,7 @@ void DefaultWriter(std::string_view string);
 
 
 /**
- * The configuration for a single Luggage VM.
+ * The configuration for a single Lug VM.
  */
 struct VMConfig {
     using ResolveModuleFn = std::function<std::optional<std::filesystem::path>
@@ -100,22 +103,26 @@ struct VMConfig {
 };
 
 /**
- * A virtual machine for executing Luggage bytecode. 
+ * A virtual machine for executing Lug bytecode. 
  * It manages the execution state, including the stack, 
  * instruction pointer, and other resources needed to run
- * Luggage programs.
+ * Lug programs.
  */
 class VM {
 public:
     explicit VM(const VMConfig& config = {});
     ~VM();
 
+    // VM is not copyable
+    VM(const VM&) = delete;
+    VM& operator=(const VM&) = delete;
+
     /**
      * Loads the given library into the VM's environment.
      * This takes in an enum of LibInclude, which you can also
      * use bitmasking or the | opreator to include multiple 
      * libraries. For instance, 
-     * LoadLibraries(LibInclude::BASE | LibInclude::MATH) will
+     * LoadLibrary(LibInclude::BASE | LibInclude::MATH) will
      * include both the base and the math library.
      */
     void LoadLibrary(LibInclude libraries);
@@ -125,14 +132,48 @@ public:
      */
     void CollectGarbage();
 
+
+    // Execute functions ------------------------
+
     /** 
-     * Takes in a Luggage program and interprets it. Returns
-     * 'true' if success, and 'false' if not.
-     *
-     * You can get the last error with VM::LastError().
+     * Takes in a Lug program and interprets it. Returns the result
+     * of the program.
      */
-    [[nodiscard]] InterpretResult InterpretFile(std::filesystem::path module);
+    [[nodiscard]] InterpretResult InterpretFile(const std::filesystem::path& module);
+
+    /**
+     * Takes in a string of Lug code and interprets it. Returns the
+     * result of the program. You may also define the name of the top 
+     * script as the second parameter.
+     */
     [[nodiscard]] InterpretResult Interpret(std::string_view source, std::string_view scriptName = "script");
+
+    // Value functions --------------------------
+
+    Variant Get(std::string_view name) const;
+    void Set(std::string_view name, const Variant& value);
+
+    /**
+     * Tries to fetch a global VM variable from the given name.
+     */
+    template<typename T>
+    std::optional<T> Get(std::string_view name) const {
+        return Get(name).As<T>();
+    };
+
+    
+    const Variant operator[](std::string_view name) const {
+        return Get(name);
+    }
+
+
+    // Error functions --------------------------
+
+    /**
+     * Returns the last error of the program.
+     * Consider using VMConfig's 'errorFn' to define a callback
+     * for when the program errors.
+     */
     const LugError& LastError() const;
 
 private:
@@ -140,4 +181,6 @@ private:
     VMConfig config;
 };
 
-}
+// Template definitions -------------------------
+
+} // Lug

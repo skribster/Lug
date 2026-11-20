@@ -6,7 +6,7 @@
 #include "lug_memory.h"
 
 
-namespace Luggage::Lib {
+namespace Lug::Lib {
 
 static Value Upper(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);

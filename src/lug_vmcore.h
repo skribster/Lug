@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstring>
-#include "luggage.hpp"
+#include "lug.hpp"
 
 #include "lug_common.h"
 #include "lug_value.h"
@@ -11,7 +11,7 @@
 #include "lug_compiler.h"
 #include "lug_gc.h"
 
-namespace Luggage {
+namespace Lug {
 
 
 struct CallFrame {
@@ -95,41 +95,49 @@ public:
     void DefineNative(const char* name, NativeFn function);
     ObjModule* LoadModule(std::filesystem::path importerPath, std::filesystem::path modulePath);
     
-    // Garbage collector methods ----------
+    // Garbage collector methods ----------------
+
     void AddObject(Obj* obj);
     void CollectGarbage();
     void MarkRoots();
     
+    inline void AdvanceEpoch() { globalEpoch++; }
+
+    // Function methods -------------------------
+
     inline void PushFrame(ObjClosure* closure, std::uint8_t argCount, std::uint8_t shared);
     NO_INLINE void PushFrameSlow(ObjClosure* closure, std::uint8_t argCount, std::uint8_t shared);
-
+    
     bool CallValue(Value value, std::uint8_t argCount, std::uint8_t shared);
     void Call(ObjClosure* closure, std::uint8_t argCount, std::uint8_t shared = 0);
     ObjUpvalue* CaptureUpvalue(Value* local);
     void CloseUpvalues(Value* last);
+
+    // Getter methods ---------------------------
+
+    Variant ToVariant(Value value);
+    Value ToValue(const Variant& variant, std::string_view name = "");
+
     ObjThing* GetProtoOf(Value value) const;
+    Variant GetGlobal(std::string_view name);
+    void SetGlobal(std::string_view name, const Variant& variant);
     
+    // Error methods ----------------------------
+
     std::string StackTraceback();
     void PushError(LugError error);
-    template<typename... Args>
-    LugError RuntimeError(const char* format, Args... args);
-
-    template<typename... Args>
-    std::string ErrorMessage(const char* kind, const char* format, Args... args);
-
-    inline void AdvanceEpoch() { globalEpoch++; }
+    template<typename... Args> LugError RuntimeError(const char* format, Args... args);
+    template<typename... Args> std::string ErrorMessage(const char* kind, const char* format, Args... args);
     
     // Member variables -------------------
     Compiler compiler;
     GC gc;
-
+    
     Table strings;
     Table builtins;
     Table modules;
     Stack stack;
 
-    ObjUpvalue* openUpvalues{ nullptr };
-    ObjModule* replModule{ nullptr };
     VMConfig config;
     
 private:
@@ -137,22 +145,30 @@ private:
     
     LugError lastError;
     LugError memoryError;
-
+    
     std::uint64_t globalEpoch{ 0 };
-
+    ObjUpvalue* openUpvalues{ nullptr };
+    
     friend class VM;
 };
 
 
 template<typename... Args>
 std::string VMCore::ErrorMessage(const char* kind, const char* format, Args... args) {
-    // Compute required length for the std::string
-    int length = std::snprintf(nullptr, 0, format, args...);
-    LUG_ASSERT(length, "snprintf formatting error");
-    // Allocate exactly enough space
-    std::string formatted(length, '\0');
-    // Format the error message with the args
-    std::snprintf(formatted.data(), static_cast<std::size_t>(length) + 1, format, args...);
+    std::string formatted;
+    if constexpr (sizeof...(args) == 0) {
+        formatted = format;
+    } else {
+        // Compute required length for the std::string
+        int length = std::snprintf(nullptr, 0, format, args...);
+        LUG_ASSERT(length, "snprintf formatting error");
+
+        formatted.resize(length * sizeof(char));
+
+        // Allocate exactly enough space
+        // Format the error message with the args
+        std::snprintf(formatted.data(), static_cast<std::size_t>(length) + 1, format, args...);
+    } 
 
     std::string errorMessage;
     errorMessage += kind;
@@ -173,11 +189,13 @@ LugError VMCore::RuntimeError(const char* format, Args... args) {
     CallFrame* frame = stack.GetFrame();
     ObjFunction* function = frame->closure->function;
     std::size_t instruction = frame->ip - function->chunk.bytecode.Data() - 1;
-    std::size_t line = function->chunk.GetSourcePosition(instruction).line;
 
+    SourcePosition sourcePos = function->chunk.GetSourcePosition(instruction);
+    
     LugError error;
     error.type = InterpretResult::RUNTIME_ERROR;
-    error.line = static_cast<int>(line);
+    error.line = static_cast<int>(sourcePos.line);
+    error.column = static_cast<int>(sourcePos.column);
     error.message = errorMessage;
 
     ObjString* messageValue = ObjString::FromSource(

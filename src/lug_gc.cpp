@@ -1,11 +1,11 @@
-#include "lug_vm.h"
+#include "lug_vmcore.h"
 #include "lug_gc.h"
 #include "lug_common.h"
 #include "lug_memory.h"
 
 #include "lug_compiler.h"
 
-namespace Luggage {
+namespace Lug {
 
 GC::~GC() {
     

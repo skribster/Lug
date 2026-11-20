@@ -4,11 +4,11 @@
 #include <ostream>
 #include <sstream>
 
-#include "luggage.hpp"
+#include "lug.hpp"
 
 namespace fs = std::filesystem;
 
-static void OnError(const Luggage::LugError& error) {
+static void OnError(const Lug::LugError& error) {
     std::cerr << "\033[31m" << error.message << "\033[0m" << std::endl;
 }
 
@@ -22,8 +22,8 @@ static std::optional<fs::path> OnResolve(fs::path importer, const fs::path reque
 }
 
 
-static void Repl(Luggage::VM& vm) {
-    std::cout << "Luggage Interactive REPL\n";
+static void Repl(Lug::VM& vm) {
+    std::cout << "Lug Interactive REPL\n";
 
     std::string line;
     while (true) {
@@ -32,9 +32,9 @@ static void Repl(Luggage::VM& vm) {
 
         if (line.empty()) break;
 
-        Luggage::InterpretResult result = vm.Interpret(line, "repl");
-        if (result != Luggage::InterpretResult::OK) {
-            const Luggage::LugError& error = vm.LastError();
+        Lug::InterpretResult result = vm.Interpret(line, "repl");
+        if (result != Lug::InterpretResult::OK) {
+            const Lug::LugError& error = vm.LastError();
             std::cerr << error.message << '\n';
         }
     }
@@ -56,35 +56,41 @@ static std::string ReadFile(std::string_view path) {
 }
 
 
-static void RunFile(Luggage::VM& vm, std::string_view path) {
-    Luggage::InterpretResult result = vm.InterpretFile(path);
+static void RunFile(Lug::VM& vm, std::string_view path) {
+    Lug::InterpretResult result = vm.InterpretFile(path);
 
-    if (result == Luggage::InterpretResult::OK) return;
+    if (result == Lug::InterpretResult::OK) return;
     
-    const Luggage::LugError& error = vm.LastError();
+    const Lug::LugError& error = vm.LastError();
 
     // Exit codes consistent with the Unix sysexits.h standard
-    if (result == Luggage::InterpretResult::COMPILE_ERROR) exit(65);
-    if (result == Luggage::InterpretResult::FILE_ERROR) exit(66);
-    if (result == Luggage::InterpretResult::RUNTIME_ERROR) exit(70);
-    if (result == Luggage::InterpretResult::MEMORY_ERROR) exit(1); 
+    if (result == Lug::InterpretResult::COMPILE_ERROR) exit(65);
+    if (result == Lug::InterpretResult::FILE_ERROR) exit(66);
+    if (result == Lug::InterpretResult::RUNTIME_ERROR) exit(70);
+    if (result == Lug::InterpretResult::MEMORY_ERROR) exit(1); 
 }
 
 
 int main(int argc, char* argv[]) {
-    Luggage::VMConfig config;
+    Lug::VMConfig config;
     config.resolveModuleFn = OnResolve;
     config.errorFn = OnError;
 
-    Luggage::VM vm(config);
-    vm.LoadLibrary(Luggage::LibInclude::ALL);
-    
+    Lug::VM vm(config);
+    vm.LoadLibrary(Lug::LibInclude::ALL);
+    vm.Set("add", [](const Lug::List& args) -> Lug::Variant {
+        auto a = args.at(0).As<double>();
+        auto b = args.at(1).As<double>();
+        if (!a || !b) throw Lug::UserError("arguments must be two numbers");
+        return *a + *b;
+    });
+
     if (argc == 1) {
         Repl(vm);
     } else if (argc == 2) {
         RunFile(vm, argv[1]);
     } else {
-        std::cerr << "usage: luggage [path]\n";
+        std::cerr << "usage: lug [path]\n";
         exit(64);
     }
 

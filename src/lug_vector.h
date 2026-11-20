@@ -7,7 +7,7 @@
 #include "lug_common.h"
 #include "lug_memory.h"
 
-namespace Luggage {
+namespace Lug {
 
 class VMCore;
 
@@ -66,7 +66,7 @@ private:
 
 
 /**
- * A Luggage dynamic array implementation.
+ * A Lug dynamic array implementation.
  */
 template<typename T>
 class Vector {
@@ -309,4 +309,4 @@ private:
 };
 
 
-} // Luggage
+} // Lug

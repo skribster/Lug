@@ -6,7 +6,7 @@
 
 #include "lug_lexer.h"
 
-namespace Luggage {
+namespace Lug {
 
 class Parser {
 public:

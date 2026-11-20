@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.23)
-project(luggage LANGUAGES CXX) 
+project(lug LANGUAGES CXX) 
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-#-------- LUGGAGE IMPLEMENTATION --------
-add_library(luggage_core)
-target_sources(luggage_core
+#-------- lug IMPLEMENTATION --------
+add_library(lug_core)
+target_sources(lug_core
     PRIVATE
         src/lug_auxlib.cpp
         src/lug_baselib.cpp
@@ -27,24 +27,25 @@ target_sources(luggage_core
         src/lug_table.cpp
         src/lug_value.cpp
         src/lug_vm.cpp
+        src/lug_vmcore.cpp
         src/lug_gc.cpp
         src/lug_filesys.cpp
     PUBLIC 
         FILE_SET HEADERS
         BASE_DIRS include
         FILES 
-            include/luggage.hpp
+            include/lug.hpp
 )
 
 
-#-------- LUGGAGE MAIN EXE --------
-add_executable(luggage)
-target_sources(luggage
+#-------- lug MAIN EXE --------
+add_executable(lug)
+target_sources(lug
     PRIVATE 
         main.cpp    
 )
 
-target_link_libraries(luggage PRIVATE luggage_core)
+target_link_libraries(lug PRIVATE lug_core)
 
 #-------- TESTS --------
 include(CTest)

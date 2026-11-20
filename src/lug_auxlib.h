@@ -1,9 +1,9 @@
 #pragma once
 
 #include "lug_common.h"
-#include "lug_vm.h"
+#include "lug_vmcore.h"
 
-namespace Luggage::Lib {
+namespace Lug::Lib {
 
 [[noreturn]] void ArgcError(VMCore& vm, std::size_t expected, std::size_t got);
 [[noreturn]] void TypeError(VMCore& vm, const char* expected, const char* got);

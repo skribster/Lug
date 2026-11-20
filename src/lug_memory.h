@@ -2,12 +2,12 @@
 
 #include "lug_common.h"
 
-namespace Luggage {
+namespace Lug {
     class VMCore; // Forward declare VMCore
 }
 
 
-namespace Luggage::Memory {
+namespace Lug::Memory {
 
 inline constexpr double GROW_CAPACITY_FACTOR = 2.0;
 

@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "luggage.hpp"
+#include "lug.hpp"
 
 namespace filesystem = std::filesystem;
 
@@ -93,12 +93,12 @@ TEST_P(LugScriptTest, TestSingleFile) {
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
 
-    Luggage::VM vm;
-    vm.LoadLibrary(Luggage::LibInclude::ALL);
-    Luggage::InterpretResult success = vm.Interpret(source, "tests");
+    Lug::VM vm;
+    vm.LoadLibrary(Lug::LibInclude::ALL);
+    Lug::InterpretResult success = vm.Interpret(source, "tests");
     
     std::string output = testing::internal::GetCapturedStdout();
-    if (success != Luggage::InterpretResult::OK) {
+    if (success != Lug::InterpretResult::OK) {
         output += vm.LastError().message;
     }
 

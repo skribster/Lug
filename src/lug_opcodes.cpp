@@ -1,7 +1,7 @@
 #include "lug_opcodes.h"
 
 
-namespace Luggage {
+namespace Lug {
 
 namespace OpCode {
     #define OPCODE(name) "OP_" #name,

@@ -5,7 +5,7 @@
 #include "lug_auxlib.h"
 #include "lug_value.h"
 
-namespace Luggage::Lib {
+namespace Lug::Lib {
 
 // Library implementation functions -----------------------------
 

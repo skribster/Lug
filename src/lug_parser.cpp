@@ -2,10 +2,10 @@
 #include <sstream>
 #include <cstdarg>
 
-#include "luggage.hpp"
+#include "lug.hpp"
 #include "lug_parser.h"
 
-namespace Luggage {
+namespace Lug {
 
 // Helper functions -----------------------------
 
@@ -155,4 +155,4 @@ void Parser::Error(const char* format, ...) {
     va_end(args);
 }
 
-} // Luggage
+} // Lug

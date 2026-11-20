@@ -3,7 +3,7 @@
 #include <filesystem>
 #include "lug_common.h"
 
-namespace Luggage {
+namespace Lug {
 
 enum class TokenType {
     // Single-character tokens

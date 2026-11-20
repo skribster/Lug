@@ -5,7 +5,7 @@
 
 namespace fs = std::filesystem;
 
-namespace Luggage::Filesystem {
+namespace Lug::Filesystem {
 
 std::optional<fs::path> ResolveModulePath(const fs::path& importerPath, const fs::path& requestedPath) {
     fs::path candidate = requestedPath;

@@ -1,13 +1,13 @@
 #include <ctime>
 
 
-#include "luggage.hpp"
+#include "lug.hpp"
 #include "lug_stdlib.h"
 #include "lug_auxlib.h"
 #include "lug_value.h"
 #include "lug_filesys.h"
 
-namespace Luggage::Lib {
+namespace Lug::Lib {
 
 
 // Library implementation functions -----------------------------

@@ -7,7 +7,7 @@
 #include "lug_value.h"
 
 
-namespace Luggage::Lib {
+namespace Lug::Lib {
 
 constexpr double PI = 3.14159265358979323846;
 constexpr double RADIANS_PER_DEGREE = PI / 180.0;

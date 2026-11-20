@@ -2,9 +2,10 @@
 
 #include <cmath>
 #include <type_traits>
+
 #include "lug_vector.h"
 
-namespace Luggage {
+namespace Lug {
 
 enum class ValueType {
     NUMBER,
@@ -25,7 +26,7 @@ enum class ObjType;
 #ifdef LUG_NAN_TAGGING
 
 /**
- * Represents a single Luggage dynamic value.
+ * Represents a single Lug dynamic value.
  */
 struct Value {
 public:
@@ -75,7 +76,13 @@ public:
     static void Print(const Value& value);
     static const char* StringType(ValueType type);
     static const char* StringType(ObjType type);
-    inline ValueType Type() const;
+    inline ValueType Type() const {
+        if (IsNumber()) return ValueType::NUMBER;
+        if (IsObj())    return ValueType::OBJ;
+        if (IsNil())    return ValueType::NIL;
+        if (IsBool())   return ValueType::BOOLEAN;
+        return ValueType::TOMBSTONE;
+    }
 
     const char* StringType() const;
     std::uint32_t GetHash() const;
@@ -123,7 +130,7 @@ private:
 #else
 
 /**
- * Represents a single Luggage dynamic value.
+ * Represents a single Lug dynamic value.
  */
 struct Value {
 public:

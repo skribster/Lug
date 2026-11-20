@@ -1,8 +1,8 @@
 #include "lug_compiler.h"
 #include "lug_debug.h"
-#include "lug_vm.h"
+#include "lug_vmcore.h"
 
-namespace Luggage {
+namespace Lug {
 
 // FunctionUnit methods -----------------------------
 
@@ -1816,7 +1816,7 @@ void Compiler::DictExpr(bool canAssign) {
     if (!parser.Check(TokenType::RIGHT_BRACE)) {
         do {
             if (parser.Match(TokenType::LEFT_BRACKET)) {
-                // Luggage allows [expr] <- value for more permissive keys.
+                // Lug allows [expr] <- value for more permissive keys.
                 // The main reason we don't allow for a more range of expressions in
                 // the default case (no brackets) is because of parsing troubles. Having
                 // something like a <- 4 <- "hello" confuses the parser because we

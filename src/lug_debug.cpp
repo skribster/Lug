@@ -4,7 +4,7 @@
 #include "lug_opcodes.h"
 #include "lug_object.h"
 
-namespace Luggage::Debug {
+namespace Lug::Debug {
 
 // Read functions -------------------------
 
@@ -79,7 +79,7 @@ static int patchInstruction(const char* name, Chunk& chunk, std::size_t offset, 
     jump |= chunk.bytecode[offset + 2];
 
     if (jump == UINT16_MAX) {
-        std::printf("%-20s %4zu -> 'NO_BREAK'\n", name, offset, isShort);
+        std::printf("%-20s %4zu -> 'NO_BREAK'\n", name, offset);
         return offset + 3;
     }
 

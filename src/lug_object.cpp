@@ -3,10 +3,10 @@
 #include <cstdarg>
 
 #include "lug_object.h"
-#include "lug_vm.h"
+#include "lug_vmcore.h"
 #include "lug_gc.h"
 
-namespace Luggage {
+namespace Lug {
 
 // Helper functions ------------------------------------
 
@@ -490,6 +490,14 @@ ObjNative* ObjNative::New(VMCore& vm, const char* name, NativeFn function) {
     return native;
 }
 
+ObjNative* ObjNative::New(VMCore& vm, const char* name, Function userFunction) {
+    ObjNative* native = AllocateObject<ObjNative>(vm);
+    native->userFunction = userFunction;
+    native->name = name;
+
+    return native;
+}
+
 
 void ObjNative::Print() {
     std::printf("<native %s>", name);
@@ -835,7 +843,7 @@ void ObjThing::Set(ObjString* attribute, Value value) {
     // Setting a proto may break the lookup chain. In this 
     // case we don't want to let the inline cache point to 
     // the past value when it's already been broken.
-    if (attribute->characters == "__proto__") {
+    if (std::strcmp(attribute->characters, "__proto__") == 0) {
         vm.AdvanceEpoch();
     }
 

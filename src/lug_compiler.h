@@ -3,7 +3,7 @@
 #include <array>
 #include <filesystem>
 
-#include "luggage.hpp"
+#include "lug.hpp"
 
 #include "lug_common.h"
 #include "lug_chunk.h"
@@ -12,7 +12,7 @@
 #include "lug_value.h"
 #include "lug_parser.h"
 
-namespace Luggage {
+namespace Lug {
     
 // Forward declarations so C++ doesn't get mad at me
 class Compiler; 

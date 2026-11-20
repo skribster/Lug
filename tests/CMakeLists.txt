@@ -3,23 +3,23 @@ set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(gtest)
 
-add_executable(luggage_tests)
-target_sources(luggage_tests
+add_executable(lug_tests)
+target_sources(lug_tests
     PRIVATE
         tests.cpp
 )
 
 
-target_link_libraries(luggage_tests
+target_link_libraries(lug_tests
     PRIVATE
-        luggage_core
+        lug_core
         GTest::gtest_main
 )
 
-target_compile_definitions(luggage_tests
+target_compile_definitions(lug_tests
     PRIVATE
         LUG_TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 include(GoogleTest)
-gtest_discover_tests(luggage_tests)
+gtest_discover_tests(lug_tests)

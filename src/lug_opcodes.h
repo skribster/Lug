@@ -72,7 +72,7 @@
                                     \
     OPCODE(RETURN)
 
-namespace Luggage {
+namespace Lug {
 
 namespace OpCode {
     enum Type : std::uint8_t {

@@ -3,7 +3,7 @@
 #include "lug_common.h"
 #include "lug_value.h"
 
-namespace Luggage {
+namespace Lug {
 
 class VMCore;
 struct ObjString;
@@ -111,7 +111,7 @@ public:
 
     VMCore& vm;
 
-    // Do not replace with Luggage::Vector because this isn't
+    // Do not replace with Lug::Vector because this isn't
     // a dynamic array. It's a hashmap. I'm stupid and I tried doing
     // this and it did not work because of the logic in AdjustCapacity().
     std::size_t count{ 0 };

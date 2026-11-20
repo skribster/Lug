@@ -1,9 +1,9 @@
 #include "lug_chunk.h"
 #include "lug_memory.h"
 #include "lug_opcodes.h"
-#include "lug_vm.h"
+#include "lug_vmcore.h"
 
-namespace Luggage {
+namespace Lug {
 
 
 Chunk::~Chunk() {

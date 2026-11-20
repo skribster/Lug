@@ -82,7 +82,8 @@
 
 
 #ifndef NDEBUG
-#include <cstdio>
+    #include <cstdio>
+    #include <iostream>
 
     #define LUG_ASSERT(condition, message)                                              \
         do                                                                              \

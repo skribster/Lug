@@ -5,7 +5,7 @@
 #include "lug_value.h"
 #include "lug_object.h"
 
-namespace Luggage {
+namespace Lug {
 
 // Helper functions ------------------------------
 /**
@@ -66,15 +66,6 @@ bool Value::operator==(const Value& other) const {
     }
 
     return bits == other.bits;
-}
-
-
-inline ValueType Value::Type() const {
-    if (IsNumber()) return ValueType::NUMBER;
-    if (IsObj())    return ValueType::OBJ;
-    if (IsNil())    return ValueType::NIL;
-    if (IsBool())   return ValueType::BOOLEAN;
-    return ValueType::TOMBSTONE;
 }
 
 #endif

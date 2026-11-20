@@ -1,10 +1,10 @@
 #include <cstring>
 #include <sstream>
 
-#include "luggage.hpp"
+#include "lug.hpp"
 #include "lug_lexer.h"
 
-namespace Luggage {
+namespace Lug {
 
 bool Token::operator==(const Token& other) const {
     if (length != other.length) return false;

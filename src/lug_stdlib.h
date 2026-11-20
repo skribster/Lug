@@ -1,10 +1,10 @@
 #pragma once
 
 #include "lug_common.h"
-#include "lug_vm.h"
+#include "lug_vmcore.h"
 #include "lug_object.h"
 
-namespace Luggage::Lib { 
+namespace Lug::Lib { 
 
 struct NativeEntry {
     const char* name;

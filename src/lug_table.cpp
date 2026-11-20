@@ -4,9 +4,9 @@
 #include "lug_table.h"
 #include "lug_memory.h"
 #include "lug_object.h"
-#include "lug_vm.h"
+#include "lug_vmcore.h"
 
-namespace Luggage {
+namespace Lug {
 
 Table::~Table() {
     Memory::FreeArray<Entry>(vm, entries, capacity);

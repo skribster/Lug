@@ -1,4 +1,4 @@
-// Luggage Programming 
+// Lug Programming 
 // Language Showcase :)
 
 // --- Data types -----------------------------------
@@ -15,7 +15,7 @@ print(unassigned)
 
 // --- Reassigning ----------------------------------
 
-// Luggage is dynamically typed.
+// Lug is dynamically typed.
 box b <- "Hello"
 b <- 2
 
