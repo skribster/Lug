@@ -1,1 +1,5 @@
-add(1, "hello")
+box add <- function(a, b)
+    return a + b
+end
+
+print(add(1, "hello"))

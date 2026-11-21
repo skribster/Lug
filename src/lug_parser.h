@@ -34,8 +34,6 @@ public:
     Token current;
     
 private:
-    std::string ErrorDetails(const Token& at) const;
-
     Lexer lexer;
     std::filesystem::path scriptPath;
 };

@@ -3,6 +3,7 @@
 #include <cmath>
 #include <unordered_map>
 
+#include "lug.hpp"
 #include "lug_vmcore.h"
 #include "lug_opcodes.h"
 #include "lug_debug.h"
@@ -93,7 +94,7 @@ InterpretResult VMCore::Interpret(std::string_view source, fs::path sourcePath) 
         // stack, causing a bunch of 'nil' values to accumulate at the bottom. 
         stack.Pop();
 
-    } catch (LugError& error) {
+    } catch (Error& error) {
         PushError(error);
         
         //! Not the best way right now to handle errors. Ideally the user'd like the stack to
@@ -262,31 +263,34 @@ Variant VMCore::GetGlobal(std::string_view name) {
 /**
  * Returns a string of the script's stack traceback.
  */
-std::string VMCore::StackTraceback() {
-    std::string traceback;
-    traceback += "stack traceback:\n";
+std::vector<StackFrame> VMCore::StackTraceback() {
+    std::vector<StackFrame> traceback;
+
     for (int i = stack.frameCount - 1; i >= 0; i--) {
+        StackFrame stackFrame;
+
         CallFrame& frame = stack.frames[i];
         ObjModule* module = frame.closure->module;
         ObjFunction* function = frame.closure->function;
         std::size_t instruction = frame.ip - function->chunk.bytecode.Data() - 1;
         SourcePosition sourcePosition = function->chunk.GetSourcePosition(instruction);;
 
+        // Set 'from'
         fs::path path{ module->path->characters };
-        traceback += "    ";
-        traceback += path.filename().string();
-        traceback += ":" + std::to_string(sourcePosition.line);
-        traceback += ":" + std::to_string(sourcePosition.column);
-        traceback += ": in ";
+        stackFrame.location.file = path.filename().string();
+        stackFrame.location.line = sourcePosition.line;
+        stackFrame.location.column = sourcePosition.column;
 
+        // Set 'function'
         if (function->name != nullptr) {
-            traceback.append(function->name->characters);
-            traceback += "()";
+            std::string functionName(function->name->characters);
+            functionName.append("()");
+            stackFrame.function = std::move(functionName);
         } else {
-            traceback += "script";
+            stackFrame.function = std::string("script");
         }
-
-        if (i != 0) traceback += '\n';
+        
+        traceback.push_back(stackFrame);
     }
 
     return traceback;
@@ -297,7 +301,7 @@ std::string VMCore::StackTraceback() {
  * 'Pushing' an error just means updating the lastError
  * and also calling the user-defined error callback.
  */
-void VMCore::PushError(LugError error) {
+void VMCore::PushError(Error error) {
     lastError = error;
     config.errorFn(error);
 }
@@ -606,7 +610,8 @@ bool VMCore::CallValue(Value value, std::uint8_t argCount, std::uint8_t shared) 
                 try {
                     result = ToValue((native->userFunction)(args));
                 } catch (const std::exception& error) {
-                    throw RuntimeError(error.what());
+                    Lug::Error runtimeError = RuntimeError(error.what());
+                    throw runtimeError;
                 }
             }
                 

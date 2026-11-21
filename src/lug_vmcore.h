@@ -124,10 +124,10 @@ public:
     
     // Error methods ----------------------------
 
-    std::string StackTraceback();
-    void PushError(LugError error);
-    template<typename... Args> LugError RuntimeError(const char* format, Args... args);
-    template<typename... Args> std::string ErrorMessage(const char* kind, const char* format, Args... args);
+    std::vector<StackFrame> StackTraceback();
+    void PushError(Error error);
+    template<typename... Args> Error RuntimeError(const char* format, Args... args);
+    template<typename... Args> std::string FormatString(const char* format, Args... args);
     
     // Member variables -------------------
     Compiler compiler;
@@ -143,8 +143,8 @@ public:
 private:
     void Run();
     
-    LugError lastError;
-    LugError memoryError;
+    Error lastError;
+    Error memoryError;
     
     std::uint64_t globalEpoch{ 0 };
     ObjUpvalue* openUpvalues{ nullptr };
@@ -154,7 +154,7 @@ private:
 
 
 template<typename... Args>
-std::string VMCore::ErrorMessage(const char* kind, const char* format, Args... args) {
+std::string VMCore::FormatString(const char* format, Args... args) {
     std::string formatted;
     if constexpr (sizeof...(args) == 0) {
         formatted = format;
@@ -170,33 +170,19 @@ std::string VMCore::ErrorMessage(const char* kind, const char* format, Args... a
         std::snprintf(formatted.data(), static_cast<std::size_t>(length) + 1, format, args...);
     } 
 
-    std::string errorMessage;
-    errorMessage += kind;
-    errorMessage += " error: ";
-    errorMessage += formatted;
-
-    return errorMessage;
+    return formatted;
 }
 
 
 template<typename... Args>
-LugError VMCore::RuntimeError(const char* format, Args... args) {
-    std::string errorMessage = ErrorMessage("runtime", format, args...);
-    errorMessage += "\n";
-    errorMessage += StackTraceback();
-
-    // Get line number of the current instruction
-    CallFrame* frame = stack.GetFrame();
-    ObjFunction* function = frame->closure->function;
-    std::size_t instruction = frame->ip - function->chunk.bytecode.Data() - 1;
-
-    SourcePosition sourcePos = function->chunk.GetSourcePosition(instruction);
+Error VMCore::RuntimeError(const char* format, Args... args) {
+    std::string errorMessage = FormatString(format, args...);
     
-    LugError error;
+    Error error;
     error.type = InterpretResult::RUNTIME_ERROR;
-    error.line = static_cast<int>(sourcePos.line);
-    error.column = static_cast<int>(sourcePos.column);
     error.message = errorMessage;
+    error.stackTraceback = StackTraceback();
+    error.location = error.stackTraceback.front().location;
 
     ObjString* messageValue = ObjString::FromSource(
         *this, errorMessage.c_str(), 

@@ -99,7 +99,7 @@ TEST_P(LugScriptTest, TestSingleFile) {
     
     std::string output = testing::internal::GetCapturedStdout();
     if (success != Lug::InterpretResult::OK) {
-        output += vm.LastError().message;
+        output += vm.LastError().Format();
     }
 
     if (expected == "[[ignoreoutput]]") {

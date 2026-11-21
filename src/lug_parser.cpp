@@ -75,67 +75,29 @@ bool Parser::IsAtEnd() {
 }
 
 
-// ERROR FUNCTIONS -----------------------------
-
-std::string Parser::ErrorDetails(const Token& at) const {
-    std::string lineContents = lexer.LineContents(at.line);
-
-    std::string lineNum = std::to_string(at.line);
-    std::string lineNumPadding(lineNum.size(), ' ');
-
-    std::string columnPadding;
-    for (std::size_t i = 0; i < at.column - 1 && i < lineContents.size(); i++) {
-        if (lineContents[i] == '\t') columnPadding += '\t';
-        else columnPadding += ' ';
-    }
-    
-    std::string details;
-    details += lineNumPadding   + " |\n";
-    details += lineNum          + " | " + lineContents + '\n';
-    details += lineNumPadding   + " | ";
-    details += columnPadding + std::string(at.length != 0 ? at.length : 1, '^');
-
-    return details;
-}
-
+// Error functions -----------------------------
 
 void Parser::ErrorAt(const Token& at, const char* format, ...) {
+    Lug::Error error;
+    error.type = InterpretResult::COMPILE_ERROR;
+    
     va_list args;
     va_start(args, format);
-
-    std::string out;
+    
     std::string message = FormatString(format, args);
     
-    // error at '...'
-    out += "error";
-    if (at.type == TokenType::END_OF_FILE) {
-        out += " at end";
-    } else if (at.type != TokenType::ERROR) {
-        out += " at '";
-        out.append(at.start, at.length);
-        out += "'";
-    }
-
-    // : message
-    out += ": " + message + "\n";
-    
-    // --> script_name.lug:line:col
-    //      | 
-    // line | ...
-    //      | 
-    //! TODO: we probably should actually display the script's path
-    // instead of just the name but this works fine for now
-    out += " --> " + scriptPath.filename().string();
-
-    out += ":" + std::to_string(at.line) + ":" + std::to_string(at.column) + '\n';
-    out += ErrorDetails(at);
-
-    LugError error;
-    error.type = InterpretResult::COMPILE_ERROR;
-    error.message = out;
-
     va_end(args);
-    
+
+    error.message = message;
+
+    error.sourceLine = lexer.LineContents(at.line);
+    error.token = std::string(at.start, at.length);
+
+    error.location.tokenLength = static_cast<int>(at.length);
+    error.location.line = at.line;
+    error.location.column = at.column;
+    error.location.file = scriptPath.filename().string();
+
     throw error;
 }
 

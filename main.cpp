@@ -8,8 +8,8 @@
 
 namespace fs = std::filesystem;
 
-static void OnError(const Lug::LugError& error) {
-    std::cerr << "\033[31m" << error.message << "\033[0m" << std::endl;
+static void OnError(const Lug::Error& error) {
+    std::cerr << "\033[31m" << error.Format() << "\033[0m" << std::endl;
 }
 
 
@@ -34,8 +34,8 @@ static void Repl(Lug::VM& vm) {
 
         Lug::InterpretResult result = vm.Interpret(line, "repl");
         if (result != Lug::InterpretResult::OK) {
-            const Lug::LugError& error = vm.LastError();
-            std::cerr << error.message << '\n';
+            const Lug::Error& error = vm.LastError();
+            std::cerr << error.Format() << '\n';
         }
     }
 }
@@ -60,8 +60,6 @@ static void RunFile(Lug::VM& vm, std::string_view path) {
     Lug::InterpretResult result = vm.InterpretFile(path);
 
     if (result == Lug::InterpretResult::OK) return;
-    
-    const Lug::LugError& error = vm.LastError();
 
     // Exit codes consistent with the Unix sysexits.h standard
     if (result == Lug::InterpretResult::COMPILE_ERROR) exit(65);

@@ -1,11 +1,13 @@
 #pragma once
 
-#include <string_view>
-#include <string>
 #include <memory>
 #include <filesystem>
 #include <functional>
 #include <optional>
+#include <vector>
+
+#include <string_view>
+#include <string>
 
 #include "lug_variant.hpp"
 
@@ -43,11 +45,44 @@ constexpr bool operator&(LibInclude a, LibInclude b) {
 }  
 
 
-struct LugError {
-    InterpretResult type;
-    std::string message;
+struct SourceLocation {
     int line;
     int column;
+    int tokenLength;
+    std::string file;
+};
+
+
+struct StackFrame {
+    SourceLocation location;
+    std::string function;   // (add(), script, <anonymous>, etc.)
+};
+
+
+struct Error {
+    // The type of error.
+    InterpretResult type;
+    
+    // The primary location where the error happened.
+    SourceLocation location;
+
+    // The error message.
+    std::string message;
+
+    // The string token where the error happened. This member is only for compile errors. 
+    std::string token;
+
+    // The full line from the source that the error occurred on. This member is only for compile errors.
+    std::string sourceLine;
+
+    // The stack traceback of frames leading up to the error. This member is only for runtime errors.
+    std::vector<StackFrame> stackTraceback;
+
+    /**
+     * Returns a formatted user-friendly representation of a Lug::Error with 
+     * all the necessary information needed.
+     */
+    std::string Format() const;
 };  
 
 
@@ -78,7 +113,7 @@ struct VMConfig {
 
     using LoadModuleFn = std::function<std::optional<std::string>(const std::filesystem::path& filePath)>;
     using WriteFn = std::function<void(std::string_view s)>;
-    using ErrorFn = std::function<void(const LugError& error)>;
+    using ErrorFn = std::function<void(const Error& error)>;
 
     /**
      * A function to resolve a module's relative path into an absolute path.
@@ -99,7 +134,7 @@ struct VMConfig {
     /**
      * A function that runs immediately after an error.
      */
-    ErrorFn errorFn { [](const LugError& error) {} };
+    ErrorFn errorFn { [](const Error& error) {} };
 };
 
 /**
@@ -174,7 +209,16 @@ public:
      * Consider using VMConfig's 'errorFn' to define a callback
      * for when the program errors.
      */
-    const LugError& LastError() const;
+    const Error& LastError() const;
+
+    /**
+     * Returns a stack traceback, or the stack of call frames 
+     * leading to where the VM currently is in the script.
+     * 
+     * If the VM isn't running when you call this function, it
+     * will simply return an empty vector.
+     */
+    std::vector<StackFrame> StackTraceback() const;
 
 private:
     std::unique_ptr<VMCore> core;

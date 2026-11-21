@@ -108,11 +108,9 @@ static Value Pcall(VMCore& vm, Value* args, std::size_t argCount) {
         result->Set("success", true);
         result->Set("result", returned);
 
-    } catch (LugError& error) {
-        const char* errorMessage = error.message.c_str();
-        
+    } catch (std::exception& error) {
         result->Set("success", false);
-        result->Set("result", ObjString::FromLiteral(vm, errorMessage));
+        result->Set("result", ObjString::FromLiteral(vm, error.what()));
 
         /*
             When the pcall ends, we want to make sure that any upvalues
@@ -143,7 +141,6 @@ static Value Pcall(VMCore& vm, Value* args, std::size_t argCount) {
         vm.CloseUpvalues(oldTop);
         vm.stack.frameCount = oldFrameCount;
         vm.stack.top = oldTop;
-
     }
 
     return vm.stack.Pop();

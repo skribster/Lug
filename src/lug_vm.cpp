@@ -1,5 +1,6 @@
 #include <filesystem>
 #include <string_view>
+#include <sstream>
 
 #include "lug_vm.hpp"
 #include "lug_filesys.h"
@@ -9,6 +10,65 @@
 namespace Lug {
 
 namespace fs = std::filesystem;
+
+// Config ---------------------------------------
+
+std::optional<fs::path> DefaultResolveModule(
+    const fs::path& importerPath, 
+    const fs::path& requestedPath
+) {
+    return Filesystem::ResolveModulePath(importerPath, requestedPath);
+}
+
+
+std::optional<std::string> DefaultFileLoader(const fs::path& filePath) {
+    return Filesystem::ReadModule(filePath);
+}
+
+
+void DefaultWriter(std::string_view string) {
+    std::fwrite(string.data(), sizeof(char), string.size(), stdout);
+}
+
+// Error ----------------------------------------
+
+std::string Error::Format() const {
+    std::ostringstream out;
+
+    if (type == InterpretResult::COMPILE_ERROR) {
+        out << "error";
+        if (!token.empty()) out << " at '" << token << "'";
+        out << ": " << message << "\n";
+
+        std::string lineNo = std::to_string(location.line);
+        std::string lineNumPadding(lineNo.size(), ' ');
+
+        out << lineNumPadding << "--> " << location.file << ":" << location.line << ":" << location.column << "\n";
+        out << lineNumPadding       << " |\n"
+            << lineNo               << " | " << sourceLine << "\n"
+            << lineNumPadding       << " | ";
+
+        out << std::string(std::max(location.column - 1, 0), ' ')
+            << std::string(std::max(location.tokenLength, 1), '^');
+    }
+
+    else if (type == InterpretResult::RUNTIME_ERROR) {
+        out << "runtime error: " << message << "\nstack traceback:\n";
+        for (auto& frame : stackTraceback) {
+            const SourceLocation& location = frame.location;
+            out << "    " << location.file << ":" << location.line << ":" << location.column
+                << ": in " << frame.function;
+
+            // Don't insert newline for the last message
+            if (&frame != &stackTraceback.back()) {
+                out << "\n";
+            }
+        }
+    }
+    return out.str();
+}
+
+// VM -------------------------------------------
 
 VM::VM(const VMConfig& config) 
 : core(std::make_unique<VMCore>(config)) 
@@ -21,13 +81,23 @@ VM::VM(const VMConfig& config)
 VM::~VM() = default;
 
 
+void VM::LoadLibrary(LibInclude libraries) {
+    if (libraries & LibInclude::NONE)           return;
+    if (libraries & LibInclude::BASE)           Lib::OpenBase(*core);
+    if (libraries & LibInclude::MATH)           Lib::OpenMath(*core);
+    if (libraries & LibInclude::STRING)         Lib::OpenString(*core);
+    if (libraries & LibInclude::COLLECTION)     Lib::OpenCollection(*core);
+    if (libraries & LibInclude::NUMBER)         Lib::OpenNumber(*core);
+}
+
+
 // Execute functions ----------------------------
 
 InterpretResult VM::InterpretFile(const fs::path& filePath) {
     auto resolved = Filesystem::ResolveModulePath("", filePath);
     if (!resolved) {
-        LugError fileError;
-        fileError.message = core->ErrorMessage("file", "could not find script '%s'", filePath.string().c_str());
+        Lug::Error fileError;
+        fileError.message = core->FormatString("file", "could not find script '%s'", filePath.string().c_str());
         fileError.type = InterpretResult::FILE_ERROR;
         core->PushError(fileError);
 
@@ -36,8 +106,8 @@ InterpretResult VM::InterpretFile(const fs::path& filePath) {
 
     auto source = Filesystem::ReadModule(filePath);
     if (!source) {
-        LugError fileError;
-        fileError.message = core->ErrorMessage("file", "could not load file '%s'", filePath.string().c_str());
+        Lug::Error fileError;
+        fileError.message = core->FormatString("could not load file '%s'", filePath.string().c_str());
         fileError.type = InterpretResult::FILE_ERROR;
         core->PushError(fileError);
 
@@ -58,38 +128,16 @@ void VM::CollectGarbage() {
 }
 
 
-const LugError& VM::LastError() const {
+// Error functions ------------------------------
+
+const Error& VM::LastError() const {
     return core->lastError;
 }
 
-
-void VM::LoadLibrary(LibInclude libraries) {
-    if (libraries & LibInclude::NONE)           return;
-    if (libraries & LibInclude::BASE)           Lib::OpenBase(*core);
-    if (libraries & LibInclude::MATH)           Lib::OpenMath(*core);
-    if (libraries & LibInclude::STRING)         Lib::OpenString(*core);
-    if (libraries & LibInclude::COLLECTION)     Lib::OpenCollection(*core);
-    if (libraries & LibInclude::NUMBER)         Lib::OpenNumber(*core);
+std::vector<StackFrame> VM::StackTraceback() const {
+    return core->StackTraceback();
 }
 
-// Config ---------------------------------------
-
-std::optional<fs::path> DefaultResolveModule(
-    const fs::path& importerPath, 
-    const fs::path& requestedPath
-) {
-    return Filesystem::ResolveModulePath(importerPath, requestedPath);
-}
-
-
-std::optional<std::string> DefaultFileLoader(const fs::path& filePath) {
-    return Filesystem::ReadModule(filePath);
-}
-
-
-void DefaultWriter(std::string_view string) {
-    std::fwrite(string.data(), sizeof(char), string.size(), stdout);
-}
 
 // Getters and Setters --------------------------
 
