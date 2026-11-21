@@ -8,6 +8,11 @@
 
 namespace fs = std::filesystem;
 
+struct Player {
+    int health;
+    void Heal(int h) { health += h; }
+};
+
 static void OnError(const Lug::Error& error) {
     std::cerr << "\033[31m" << error.Format() << "\033[0m" << std::endl;
 }
@@ -65,7 +70,7 @@ static void RunFile(Lug::VM& vm, std::string_view path) {
     if (result == Lug::InterpretResult::COMPILE_ERROR) exit(65);
     if (result == Lug::InterpretResult::FILE_ERROR) exit(66);
     if (result == Lug::InterpretResult::RUNTIME_ERROR) exit(70);
-    if (result == Lug::InterpretResult::MEMORY_ERROR) exit(1); 
+    if (result == Lug::InterpretResult::MEMORY_ERROR) exit(1);
 }
 
 
@@ -76,12 +81,20 @@ int main(int argc, char* argv[]) {
 
     Lug::VM vm(config);
     vm.LoadLibrary(Lug::LibInclude::ALL);
-    vm.Set("add", [](const Lug::List& args) -> Lug::Variant {
+
+    int count = 0;
+    vm.Set("next", [&count]() mutable {
+        count++;
+        std::cout << count << '\n';
+    });
+
+    // Original case works too, albeit with a little more verbosity......
+    vm.Set("add", Lug::Function([](const Lug::List& args) -> Lug::Variant {
         auto a = args.at(0).As<double>();
         auto b = args.at(1).As<double>();
         if (!a || !b) throw Lug::UserError("arguments must be two numbers");
         return *a + *b;
-    });
+    }));
 
     if (argc == 1) {
         Repl(vm);
