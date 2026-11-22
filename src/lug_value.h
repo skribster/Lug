@@ -4,6 +4,7 @@
 #include <type_traits>
 
 #include "lug_vector.h"
+#include "lug_variant.hpp"
 
 namespace Lug {
 
@@ -44,7 +45,7 @@ public:
         pointers whose class inherits Obj, aka ObjString, ObjFunction, etc.)
         but not any other pointer.
     */
-    template <typename T, typename = std::enable_if_t<!std::is_base_of_v<Obj, T>>>
+    template<typename T, typename = std::enable_if_t<!std::is_base_of_v<Obj, T>>>
     Value(T* anyOtherPointer) = delete;
 
     // Named singleton constructors
@@ -56,7 +57,7 @@ public:
     inline int AsInteger() const    { return static_cast<int>(AsNumber()); }
     inline bool AsBool() const      { return bits == TRUE_VAL; }
     inline Obj* AsObj() const       { return reinterpret_cast<Obj*>(static_cast<std::uintptr_t>(bits & ~(SIGN_BIT | QNAN))); }
-
+    
     template<typename T> 
     T* AsObj() const { return static_cast<T*>(AsObj()); }
 
@@ -148,7 +149,7 @@ public:
         pointers whose class inherits Obj, aka ObjString, ObjFunction, etc.)
         but not any other pointer.
     */
-    template <typename T, typename = std::enable_if_t<!std::is_base_of_v<Obj, T>>>
+    template<typename T, typename = std::enable_if_t<!std::is_base_of_v<Obj, T>>>
     Value(T* anyOtherPointer) = delete;
 
     // Named singleton constructors

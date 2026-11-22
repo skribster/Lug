@@ -134,20 +134,62 @@ const Error& VM::LastError() const {
     return core->lastError;
 }
 
+
 std::vector<StackFrame> VM::StackTraceback() const {
     return core->StackTraceback();
 }
 
 
-// Getters and Setters --------------------------
+// Value functions --------------------------
 
 Variant VM::Get(std::string_view name) const {
     return core->GetGlobal(name);
 }
 
+
 void VM::Set(std::string_view name, const Variant& value) {
     core->SetGlobal(name, value);
 }
 
+
+Field<VM, std::string> VM::operator[](std::string_view name) {
+    return { this, std::string(name) };
+}
+
+
+Variant VM::operator[](std::string_view name) const {
+    return Get(name);
+}
+
+
+// Value functions ------------------------------
+
+Thing VM::NewThing() {
+    ObjThing* thing = ObjThing::New(*core);
+    return Thing(core->MakeSharedHandle(thing));
+}
+
+
+List VM::NewList(std::initializer_list<Variant> initializer) {
+    ObjList* list = ObjList::New(*core);
+    core->stack.Push(list);
+    
+    for (const Variant& item : initializer) {
+        Value value = core->ToValue(item);
+        
+        core->stack.Push(value);   
+        list->Append(value);
+        core->stack.Pop(); // value
+    }
+    
+    core->stack.Pop(); // list 
+    return List(core->MakeSharedHandle(list));
+}
+
+
+Dict VM::NewDict() {
+    ObjDict* dict = ObjDict::New(*core);
+    return Dict(core->MakeSharedHandle(dict));
+}
 
 } // Lug

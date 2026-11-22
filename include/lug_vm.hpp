@@ -95,6 +95,8 @@ class VMCore;
 
 // VM -------------------------------------------
 
+struct Handle;
+
 std::optional<std::filesystem::path> DefaultResolveModule(
     const std::filesystem::path& importerPath, 
     const std::filesystem::path& requestedPath
@@ -102,7 +104,6 @@ std::optional<std::filesystem::path> DefaultResolveModule(
 
 std::optional<std::string> DefaultFileLoader(const std::filesystem::path& filePath);
 void DefaultWriter(std::string_view string);
-
 
 /**
  * The configuration for a single Lug VM.
@@ -196,11 +197,14 @@ public:
         return Get(name).As<T>();
     };
 
-    
-    const Variant operator[](std::string_view name) const {
-        return Get(name);
-    }
+    Field<VM, std::string> operator[](std::string_view name);
+    Variant operator[](std::string_view name) const;
 
+    // Value factory functions ------------------
+
+    Lug::Thing NewThing();
+    Lug::List NewList(std::initializer_list<Variant> initializer = {});
+    Lug::Dict NewDict();
 
     // Error functions --------------------------
 
@@ -223,6 +227,7 @@ public:
 private:
     std::unique_ptr<VMCore> core;
     VMConfig config;
+
 };
 
 // Template definitions -------------------------

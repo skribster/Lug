@@ -13,11 +13,21 @@
 
 namespace Lug {
 
+class VMCore;
 
 struct CallFrame {
     ObjClosure* closure{ nullptr };
     std::uint8_t* ip{ nullptr };
     Value* slots{ nullptr };
+};
+
+
+struct Handle {
+    Value value;
+    
+    VMCore* vm{ nullptr };
+    Handle* previous { nullptr };
+    Handle* next{ nullptr };
 };
 
 
@@ -90,6 +100,7 @@ struct Stack {
 class VMCore {
 public:
     VMCore(VMConfig config);
+    ~VMCore();
   
     InterpretResult Interpret(std::string_view source, std::filesystem::path sourcePath);
     void DefineNative(const char* name, NativeFn function);
@@ -100,6 +111,10 @@ public:
     void AddObject(Obj* obj);
     void CollectGarbage();
     void MarkRoots();
+
+    Handle* MakeHandle(Value value);
+    std::shared_ptr<Handle> MakeSharedHandle(Value value);
+    void ReleaseHandle(Handle* handle);
     
     inline void AdvanceEpoch() { globalEpoch++; }
 
@@ -115,7 +130,7 @@ public:
 
     // Getter methods ---------------------------
 
-    Variant ToVariant(Value value);
+    Variant ToVariant(const Value& value);
     Value ToValue(const Variant& variant, std::string_view name = "");
 
     ObjThing* GetProtoOf(Value value) const;
@@ -130,6 +145,7 @@ public:
     template<typename... Args> std::string FormatString(const char* format, Args... args);
     
     // Member variables -------------------
+
     Compiler compiler;
     GC gc;
     
@@ -148,6 +164,7 @@ private:
     
     std::uint64_t globalEpoch{ 0 };
     ObjUpvalue* openUpvalues{ nullptr };
+    Handle* handles{ nullptr };
     
     friend class VM;
 };

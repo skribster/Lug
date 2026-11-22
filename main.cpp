@@ -82,19 +82,17 @@ int main(int argc, char* argv[]) {
     Lug::VM vm(config);
     vm.LoadLibrary(Lug::LibInclude::ALL);
 
-    int count = 0;
-    vm.Set("next", [&count]() mutable {
-        count++;
-        std::cout << count << '\n';
-    });
+    Lug::Thing player = vm.NewThing();
+    player["health"] = 20;
+    player["takeDamage"] = [](Lug::Thing self, double damage) {
+        self["health"] = self["health"].AsOr<double>(0) - damage;
+    };
 
-    // Original case works too, albeit with a little more verbosity......
-    vm.Set("add", Lug::Function([](const Lug::List& args) -> Lug::Variant {
-        auto a = args.at(0).As<double>();
-        auto b = args.at(1).As<double>();
-        if (!a || !b) throw Lug::UserError("arguments must be two numbers");
-        return *a + *b;
-    }));
+    vm["Player"] = player;
+
+    Lug::Dict dict = vm.NewDict();
+    dict[2] = "whatever";
+    vm["what"] = dict;
 
     if (argc == 1) {
         Repl(vm);

@@ -26,7 +26,7 @@ void* Reallocate(VMCore& vm, void* pointer, std::size_t oldSize, std::size_t new
 /**
  * Grows a dynamic array to the new capacity.
  */
-template <typename T>
+template<typename T>
 [[nodiscard]] T* GrowArray(VMCore& vm, T* array, std::size_t oldCapacity, std::size_t newCapacity) {
     return (T*)Reallocate(vm, array, sizeof(T) * oldCapacity, sizeof(T) * newCapacity);
 }
@@ -49,7 +49,7 @@ T* FreeArray(VMCore& vm, T* array, std::size_t currentCapacity) {
  * a given count.
  */
 template<typename T>
-[[nodiscard]] T* Allocate(VMCore& vm, std::size_t count) {
+[[nodiscard]] T* Allocate(VMCore& vm, std::size_t count = 1) {
     return (T*)Reallocate(vm, nullptr, 0, sizeof(T) * count);
 }
 

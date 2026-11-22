@@ -485,27 +485,33 @@ void ObjClosure::Blacken(GC& gc) {
 ObjNative* ObjNative::New(VMCore& vm, const char* name, NativeFn function) {
     ObjNative* native = AllocateObject<ObjNative>(vm);
     native->function = function;
-    native->name = name;
 
+    vm.stack.Push(native);
+    native->name = ObjString::FromLiteral(vm, name);
+    vm.stack.Pop(); //  native
+    
     return native;
 }
 
 ObjNative* ObjNative::New(VMCore& vm, const char* name, Function userFunction) {
     ObjNative* native = AllocateObject<ObjNative>(vm);
     native->userFunction = userFunction;
-    native->name = name;
-
+    
+    vm.stack.Push(native);
+    native->name = ObjString::FromLiteral(vm, name);
+    vm.stack.Pop();
+    
     return native;
 }
 
 
 void ObjNative::Print() {
-    std::printf("<native %s>", name);
+    std::printf("<native %s>", name->characters);
 }
 
 
 ObjString* ObjNative::ToString() {
-    return ObjString::FromFormat(vm, "<native %s>", name);
+    return ObjString::FromFormat(vm, "<native %s>", name->characters);
 }
 
 

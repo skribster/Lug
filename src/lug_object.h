@@ -200,7 +200,7 @@ struct ObjNative : Obj {
 
     NativeFn function{ nullptr };
     Function userFunction{ nullptr }; // defined in lug.hpp, a third party function defined by the user using the Lug API
-    const char* name;
+    ObjString* name{ nullptr };
 
     static ObjNative* New(VMCore& vm, const char* name, NativeFn function);
     static ObjNative* New(VMCore& vm, const char* name, Function function);

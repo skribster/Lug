@@ -78,6 +78,16 @@ VMCore::VMCore(VMConfig config)
     stack.Reset();
 }
 
+VMCore::~VMCore() {
+    for (
+        Handle* handle = handles; 
+        handle != nullptr; 
+        handle = handle->next
+    ) {
+        handle->vm = nullptr;
+    }
+}
+
 
 InterpretResult VMCore::Interpret(std::string_view source, fs::path sourcePath) {
     try {
@@ -113,8 +123,50 @@ InterpretResult VMCore::Interpret(std::string_view source, fs::path sourcePath) 
 }
 
 
-Variant VMCore::ToVariant(Value value) {
+Value VMCore::ToValue(const Variant& variant, std::string_view name) {
+    return std::visit([&](const auto& arg) -> Value {
+        using VariantType = std::decay_t<decltype(arg)>;
+
+        if constexpr (std::is_same_v<VariantType, std::monostate>) {
+            return Value::Nil();
+        } 
+
+        else if constexpr (std::is_same_v<VariantType, bool>) {
+            return arg;
+        } 
+
+        else if constexpr (std::is_same_v<VariantType, double>) {
+            return arg;
+        } 
+        
+        else if constexpr (std::is_same_v<VariantType, std::string>) {
+            return ObjString::FromSource(*this, arg.c_str(), arg.size());
+        }
+        
+        else if constexpr (std::is_same_v<VariantType, List>) {
+            return arg.handle->value;
+        } 
+
+        else if constexpr (std::is_same_v<VariantType, Dict>) {
+            return arg.handle->value;
+        } 
+
+        else if constexpr (std::is_same_v<VariantType, Thing>) {
+            return arg.handle->value;
+        }
+
+        else if constexpr (std::is_same_v<VariantType, Function>) {
+            return ObjNative::New(*this, std::string(name).c_str(), arg);
+        }
+
+        return Value::Nil();
+    }, variant.Data());
+}
+
+
+Variant VMCore::ToVariant(const Value& value) {
     switch (value.Type()) {
+        // Primitive types ----------------------
         case ValueType::BOOLEAN: return Variant{ value.AsBool() };
         case ValueType::NUMBER: return Variant{ value.AsNumber() };
 
@@ -126,24 +178,23 @@ Variant VMCore::ToVariant(Value value) {
             
             else if (value.IsObj(ObjType::LIST)) {
                 ObjList* list = value.AsObj<ObjList>();
-                List variantList;
+                Lug::List newList(MakeSharedHandle(list));
 
-                for (auto& item : *list) {
-                    variantList.emplace_back(ToVariant(item));
-                }
-                
-                return Variant{ std::move(variantList) };
+                return Variant{ newList }; 
             }
             
             else if (value.IsObj(ObjType::DICT)) {
                 ObjDict* dict = value.AsObj<ObjDict>();
-                Dict variantDict;
+                Lug::Dict newDict(MakeSharedHandle(dict));
 
-                for (auto& entry : *dict) {
-                    variantDict.emplace_back(ToVariant(entry.key), ToVariant(entry.value));
-                }
+                return Variant{ newDict }; 
+            }
 
-                return Variant{ std::move(variantDict) };
+            else if (value.IsObj(ObjType::THING)) {
+                ObjThing* thing = value.AsObj<ObjThing>();
+                Lug::Thing newThing(MakeSharedHandle(thing));
+
+                return Variant{ newThing };
             }
 
             else if (value.IsObj(ObjType::NATIVE)) {
@@ -159,67 +210,6 @@ Variant VMCore::ToVariant(Value value) {
 
         default: return Variant{ };
     }
-}
-
-
-Value VMCore::ToValue(const Variant& variant, std::string_view name) {
-    return std::visit([&](const auto& arg) -> Value {
-        using VariantType = std::decay_t<decltype(arg)>;
-
-        if constexpr (std::is_same_v<VariantType, std::monostate>) {
-            return Value::Nil();
-        } 
-        else if constexpr (std::is_same_v<VariantType, bool>) {
-            return arg;
-        } 
-        else if constexpr (std::is_same_v<VariantType, double>) {
-            return arg;
-        } 
-        else if constexpr (std::is_same_v<VariantType, List>) {
-            ObjList* list = ObjList::New(*this);
-            stack.Push(list);
-
-            for (auto& item : arg) {
-                Value value = ToValue(item);
-                stack.Push(value);
-                list->Append(value);
-                stack.Pop(); // value
-            }
-
-            stack.Pop();
-
-            return list;
-        } 
-        else if constexpr (std::is_same_v<VariantType, Dict>) {
-            ObjDict* dict = ObjDict::New(*this);
-            stack.Push(dict);
-
-            for (const auto& [key, value] : arg) {
-                Value k = ToValue(key);
-                Value v = ToValue(value);
-
-                stack.Push(k);
-                stack.Push(v);
-
-                dict->Set(k, v);
-                
-                stack.Pop(); // v
-                stack.Pop(); // k
-            }   
-
-            stack.Pop();
-
-            return dict;
-        } 
-        else if constexpr (std::is_same_v<VariantType, std::string>) {
-            return ObjString::FromSource(*this, arg.c_str(), arg.size());
-        }
-        else if constexpr (std::is_same_v<VariantType, Function>) {
-            return ObjNative::New(*this, std::string(name).c_str(), arg);
-        }
-
-        return Value::Nil();
-    }, variant.Data());
 }
 
 
@@ -415,11 +405,75 @@ void VMCore::MarkRoots() {
     }
 
     /*
+        We also want to mark all the handles so that the user of the
+        API doesn't get a dangling reference to a Lug object.
+    */
+    for (
+        Handle* handle = handles; 
+        handle != nullptr; 
+        handle = handle->next
+    ) {
+        gc.MarkValue(handle->value);
+    }
+
+
+    /*
         The compiler also grabs memory from the heap for literals
         and the constant table. We also want to keep track of those
         objects as well.
     */
     compiler.MarkRoots();
+}
+
+
+/**
+ * Makes a new handle to a VM object. This prevents it from being
+ * collected by the GC.
+ */
+Handle* VMCore::MakeHandle(Value value) {
+    Handle* newHandle = new Handle{ value, this, nullptr, handles };    
+   
+    // Push the new handle to the front of the linked list
+    if (handles) handles->previous = newHandle;
+    handles = newHandle;
+
+    return newHandle;
+}
+
+
+std::shared_ptr<Handle> VMCore::MakeSharedHandle(Value value) {
+    return std::shared_ptr<Handle>(MakeHandle(value), [](Handle* handle) {
+        // If the VM is still alive when we're accessing the handle,
+        // we should unlink it from the handle linked list.
+        if (handle->vm) {
+            handle->vm->ReleaseHandle(handle);
+        }
+        
+        // Otherwise, if this handle outlived its VM, we'll just delete
+        // the node.
+        else {
+            delete handle;
+        }
+    });
+}
+
+
+/**
+ * Releases the handle from the handle linked list. This will let
+ * the GC collect the value.
+ */
+void VMCore::ReleaseHandle(Handle* handle) {
+    if (handle->previous) {
+        handle->previous->next = handle->next;
+    } else {
+        handles = handle->next;
+    }
+
+    if (handle->next) {
+        handle->next->previous = handle->previous;
+    }
+
+    delete handle;
 }
 
 
@@ -602,13 +656,15 @@ bool VMCore::CallValue(Value value, std::uint8_t argCount, std::uint8_t shared) 
             } 
             
             else if (native->userFunction) { 
-                Lug::List args;
+                std::vector<Variant> args;
                 for (std::size_t i = 0; i < argCount; i++) {
-                    args.push_back(ToVariant(stack.Peek(argCount - 1 - i)));
+                    Variant arg = ToVariant(stack.Peek(argCount - 1 - i));
+                    args.push_back(std::move(arg));
                 }
 
                 try {
-                    result = ToValue((native->userFunction)(args));
+                    Variant returned = native->userFunction(args);
+                    result = ToValue(returned);
                 } catch (const std::exception& error) {
                     Lug::Error runtimeError = RuntimeError(error.what());
                     throw runtimeError;
@@ -1589,7 +1645,8 @@ void VMCore::Run() {
             }
 
             ObjThing* proto = GetProtoOf(stack.Peek(0));
-            if (const Value* value = proto->Get(attributeName)) {
+            if (proto) {
+                const Value* value = proto->Get(attributeName);
                 if (value == nullptr) {
                     throw RuntimeError("could not find '%s' in value", attributeName->characters);
                 }

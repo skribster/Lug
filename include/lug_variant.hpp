@@ -3,28 +3,150 @@
 #include <type_traits>
 #include <optional>
 #include <variant>
+#include <tuple>
 
 #include <string>
+#include <string_view>
 #include <vector>
-#include <tuple>
-#include <unordered_map>
 #include <functional>
+#include <memory>
 
 #include <utility>
 #include <stdexcept>
 
 namespace Lug {
 
-struct Variant;
-using List = std::vector<Variant>;
-using Dict = std::vector<std::pair<Variant, Variant>>;
-using Thing = std::unordered_map<std::string, Variant>;
-using Function = std::function<Variant(const List& args)>;
-
 struct UserError : std::runtime_error {
     using std::runtime_error::runtime_error;
 };
 
+// Forward declarations so C++ doesn't get mad at me
+
+class VM;
+class VMCore;
+struct Variant;
+struct Handle;
+
+
+/**
+ * Little helper class to implement the [] operator in classes like
+ * Thing, Dict, VM.
+ */
+template<typename Owner, typename Key>
+class Field {
+public:
+    Field(Owner* owner, Key key)
+        : owner(owner), key(key) {}
+
+    template<typename V>
+    Field& operator=(V&& value) { 
+        owner->Set(key, value); 
+        return *this; 
+    }
+
+    template<typename T> 
+    std::optional<T> As() const;
+
+    template<typename T>
+    T AsOr(T fallback) const;
+
+    operator Variant() const;
+
+private:
+    Owner* owner;
+    Key key;
+};
+
+// Object types ---------------------------------
+
+namespace Impl {
+
+/**
+ * Inheritors of this class represent a Variant type that
+ * holds a reference to an VM-managed Obj*.
+ */
+struct ObjectRef {
+public:
+    ObjectRef() = delete;
+    ObjectRef(std::shared_ptr<Handle> handle) : handle(std::move(handle)) {}
+
+    bool IsValid() const;
+    explicit operator bool() const { return IsValid(); }
+    
+protected:
+    std::shared_ptr<Handle> handle;
+};
+
+} // Impl
+
+
+// List --------------------------
+
+struct List : Impl::ObjectRef {
+public:
+    Variant Get(int index) const;
+    void Set(int index, const Variant& value);
+    void Append(const Variant& item);
+
+    Field<List, int> operator[](int index);
+    Variant operator[](int index) const;
+
+private:
+    explicit List(std::shared_ptr<Handle> handle) 
+        : ObjectRef(std::move(handle)) {} 
+
+    friend class VM;
+    friend class VMCore;
+};
+
+// Dict --------------------------
+
+struct Dict : Impl::ObjectRef {
+public:
+    void Set(const Variant& key, const Variant& value);
+    Variant Get(const Variant& key) const;
+
+    Field<Dict, Variant> operator[](const Variant& key);
+    Variant operator[](const Variant& key) const;
+    
+private:
+    explicit Dict(std::shared_ptr<Handle> handle) 
+        : ObjectRef(std::move(handle)) {}
+
+    friend class VM;
+    friend class VMCore;
+};
+
+
+// Thing -------------------------
+
+struct Thing : Impl::ObjectRef {
+public:
+    Variant Get(std::string_view attribute) const;
+    void Set(std::string_view key, const Variant& value);
+    
+    template<typename T>
+    std::optional<T> Get(std::string_view key) const;
+    
+    template<typename T>
+    T GetOr(std::string_view key, T fallback) const;
+    
+    Field<Thing, std::string> operator[](std::string_view attribute);
+    Variant operator[](std::string_view attribute) const;
+    
+private:
+    explicit Thing(std::shared_ptr<Handle> handle) 
+        : ObjectRef(std::move(handle)) {}
+    
+    friend class VM;
+    friend class VMCore;
+};
+
+
+// Other types......
+
+using Nil = std::monostate;
+using Function = std::function<Variant(const std::vector<Variant>& args)>;
 
 namespace Impl {
     
@@ -47,13 +169,13 @@ struct LambdaTraits;
  * However, for lambdas, we don't actually want that kind of behavior. To combat this, we make a 
  * separate FunctionTraits for lambdas that doesn't pass in Cls& as its first arg.
  */
-template <typename Cls, typename Ret, typename... A>
+template<typename Cls, typename Ret, typename... A>
 struct LambdaTraits<Ret(Cls::*)(A...)> { 
     using Return = Ret;
     using Args = std::tuple<A...>; 
 };
 
-template <typename Cls, typename Ret, typename... A>
+template<typename Cls, typename Ret, typename... A>
 struct LambdaTraits<Ret(Cls::*)(A...) const> { 
     using Return = Ret; 
     using Args = std::tuple<A...>; 
@@ -69,7 +191,7 @@ struct LambdaTraits<Ret(Cls::*)(A...) const> {
  */
 template<typename Fn>
 struct FunctionTraits : LambdaTraits<decltype(&Fn::operator())> {};
-/* NOTE:      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/*  NOTE:               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     The 'inheritance' part is to defer lambdas/functors to their respective LambdaTraits
     cases. Lambdas are basically classes, and so they won't get matched with any of
     the other Traits<T> patterns which only match for function pointers. 
@@ -122,23 +244,23 @@ struct FunctionTraits<Ret(Cls::*)(A...) const> {
 
 //! The actual stuff -----------------------------
 
-template <typename T> T GetArg(const List& args, std::size_t i);
+template<typename T> T GetArg(const std::vector<Variant>& args, std::size_t i);
 template<typename Fn> Lug::Function Wrap(Fn&& function);
 
-template <typename Fn, typename Traits, std::size_t... Arity> 
-Variant Invoke(Fn& function, const List& args, std::index_sequence<Arity...>);
+template<typename Fn, typename Traits, std::size_t... Arity> 
+Variant Invoke(Fn& function, const std::vector<Variant>& args, std::index_sequence<Arity...>);
 
 // Helper functions to check whether a passed-in value is callable or not.
 // The default case is false.
-template <typename F, typename Enable = void> 
+template<typename F, typename Enable = void> 
 struct IsCallable : std::false_type {};
 
 // If a value has an operator(), then it's callable.
-template <typename F> 
+template<typename F> 
 struct IsCallable<F, std::void_t<decltype(&F::operator())>> : std::true_type {};
 
 // If a value matches the structure of a function pointer, then it's callable.
-template <typename R, typename... A>   
+template<typename R, typename... A>   
 struct IsCallable<R(*)(A...)> : std::true_type {};
 
 } // Impl
@@ -167,7 +289,7 @@ public:
     template<typename Fn, typename = std::enable_if_t<Impl::IsCallable<std::decay_t<Fn>>::value>>
     Variant(Fn&& function) : data(Impl::Wrap(std::decay_t<Fn>(std::forward<Fn>(function)))) {}
 
-    template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T> && !std::is_same_v<T, bool>>>
+    template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T> && !std::is_same_v<T, bool>>>
     Variant(T number) : data(static_cast<double>(number)) {}
 
     template<typename T>
@@ -200,11 +322,23 @@ public:
         return std::nullopt;
     }
 
+    template<typename T>
+    bool Is() const {
+        return std::holds_alternative<T>(data);
+    }
+
+    template<typename T>
+    T AsOr(T fallback) const {
+        std::optional<T> as = As<T>();
+        if (!as) return fallback;
+        return *as;
+    }
+
     const auto& Data() const { return data; }
 
 private:
     std::variant<
-        std::monostate,     // Nil
+        Nil,                // Nil
         double,             // Number
         bool,               // Boolean
         std::string,        // String
@@ -215,28 +349,57 @@ private:
     > data;
 };
 
+// Out-of-line definitions that need 
+// the full definition of Variant..........
+
+template<typename Owner, typename Key>
+template<typename T>
+std::optional<T> Field<Owner, Key>::As() const {
+    return owner->Get(key).template As<T>();
+}
+
+template<typename Owner, typename Key>
+template<typename T>
+T Field<Owner, Key>::AsOr(T fallback) const {
+    return As<T>().value_or(fallback);
+}
+
+template<typename Owner, typename Key>
+Field<Owner, Key>::operator Variant() const {
+    return owner->Get(key);
+}
+
+template<typename T>
+std::optional<T> Thing::Get(std::string_view key) const {
+    Variant v = Get(key);          // non-template overload
+    return v.template As<T>();
+}
+
+template<typename T>
+T Thing::GetOr(std::string_view key, T fallback) const {
+    return Get<T>(key).value_or(fallback);
+}
 
 namespace Impl {
-    
-    
+
 /**
  * Takes in a Variant arglist and an argument index.
  * Returns the argument of that index, but ensures that
  * it's off type T. If not, it throws an error
  */
-template <typename T>
-T GetArg(const List& args, std::size_t i) {
-    Variant arg = args[i];
+template<typename T>
+T GetArg(const std::vector<Variant>& args, std::size_t index) {
+    Variant arg = args[index];
     std::optional<T> value = arg.As<T>();
 
     // If As<T> ends up null, then that means it's a wrong type.
-    if (!value) throw UserError("bad argument #" + std::to_string(i + 1));
+    if (!value) throw UserError("bad argument #" + std::to_string(index + 1));
     return *value;
 }
 
 
-template <typename Fn, typename Traits, std::size_t... Indices>
-Variant Invoke(Fn& function, const List& args, std::index_sequence<Indices...>) {
+template<typename Fn, typename Traits, std::size_t... Indices>
+Variant Invoke(Fn& function, const std::vector<Variant>& args, std::index_sequence<Indices...>) {
     using Args = typename Traits::Args;
 
     /*
@@ -309,7 +472,7 @@ Lug::Function Wrap(Fn&& function) {
     using Traits = FunctionTraits<Fn>;
     constexpr std::size_t arity = std::tuple_size_v<typename Traits::Args>;
 
-    return [function](const List& args) mutable -> Variant {
+    return [function](const std::vector<Variant>& args) mutable -> Variant {
         if (args.size() != arity) {
             // Throw an error if the function wasn't called with the correct argCount/arity.
             throw UserError("expected " + std::to_string(arity) + " argument(s) but got " + std::to_string(args.size()));
@@ -320,6 +483,6 @@ Lug::Function Wrap(Fn&& function) {
     };
 }
     
-}
+} // Impl
 
-}
+} // Lug

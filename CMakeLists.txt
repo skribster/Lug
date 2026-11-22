@@ -26,6 +26,7 @@ target_sources(lug_core
         src/lug_parser.cpp
         src/lug_table.cpp
         src/lug_value.cpp
+        src/lug_variant.cpp
         src/lug_vm.cpp
         src/lug_vmcore.cpp
         src/lug_gc.cpp
