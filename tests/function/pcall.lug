@@ -1,0 +1,33 @@
+box payload <- pcall(function()
+    error("Payload") 
+end)
+
+print(payload.success) // expect: false
+print(payload.result) // expect: Payload
+
+
+// Test with other objects, you can pass anything inside 'error'
+box callWithNumber <- pcall(function()
+    error(5) 
+end)
+
+print(callWithNumber.success) // expect: false
+print(callWithNumber.result) // expect: 5
+
+// Test with non-anonymous function, multiple args
+box add <- function(a, b)
+    return a + b
+end
+
+
+box try1 <- pcall(add, 1, "bad")
+print(try1.success) // expect: false
+print(try1.result) // expect: can't add operands of type 'number' and 'string' together
+
+box try2 <- pcall(add, 1, 2)
+print(try2.success) // expect: 
+print(try2.result) // expect: 3
+
+box try3 <- pcall(add, 4, 3, 2, 1)
+print(try3.success) // expect: false
+print(try3.result) // expect: expected 2 argument(s) but got 4

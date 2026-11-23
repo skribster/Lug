@@ -26,7 +26,7 @@ struct Obj;
 struct ObjString;
 enum class ObjType;
 
-#ifdef LUG_NAN_TAGGING
+#if LUG_NAN_TAGGING
 
 /**
  * Represents a single Lug dynamic value.
@@ -163,6 +163,7 @@ public:
     Value() : type(ValueType::NIL) { as.number = 0; }
 
     bool operator==(const Value& other) const;
+    explicit operator bool() const { return !IsNil(); }
     
     Value(double number) : type(ValueType::NUMBER)          { as.number = number; }
     Value(int number) : type(ValueType::NUMBER)             { as.number = static_cast<double>(number); }

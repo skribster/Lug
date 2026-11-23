@@ -30,11 +30,17 @@ static std::uint32_t HashDouble(double value) {
 
 // Value methods ------------------------------
 
-#ifndef LUG_NAN_TAGGING
-
 bool Value::operator==(const Value& other) const {
-    if (type != other.Type()) return false;
+#if LUG_NAN_TAGGING
+    // This is to handle IEEE-754, which states that NaN
+    // values are not equal to themselves.
+    if (IsNumber() && other.IsNumber()) {
+        return AsNumber() == other.AsNumber(); 
+    }
 
+    return bits == other.bits;
+#else
+    if (type != other.Type()) return false;
     switch (type) {
         case ValueType::BOOLEAN: {
             return AsBool() == other.AsBool(); 
@@ -54,21 +60,9 @@ bool Value::operator==(const Value& other) const {
 
         default: UNREACHABLE();
     }
-}
-
-#else 
-
-bool Value::operator==(const Value& other) const {
-    // This is to handle IEEE-754, which states that NaN
-    // values are not equal to themselves.
-    if (IsNumber() && other.IsNumber()) {
-        return AsNumber() == other.AsNumber(); 
-    }
-
-    return bits == other.bits;
-}
-
 #endif
+}
+
 
 
 void Value::Print(const Value& value) {

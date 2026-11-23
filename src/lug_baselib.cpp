@@ -59,10 +59,9 @@ static Value Thing(VMCore& vm, Value* args, std::size_t argCount) {
 
 static Value Error(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);
-    CheckType(vm, args[0], ObjType::STRING);
 
-    ObjString* errorMessage = args[0].As<ObjString>();
-    throw vm.RuntimeError(errorMessage->characters);
+    Value payload = args[0];
+    throw vm.RuntimeError(payload);
 }
 
 
@@ -84,7 +83,6 @@ static Value Assert(VMCore& vm, Value* args, std::size_t argCount) {
 
 
 static Value Pcall(VMCore& vm, Value* args, std::size_t argCount) {
-    CheckArgc(vm, argCount, 1);
     CheckType(vm, args[0], ObjType::CLOSURE);
 
     ObjClosure* function = args[0].As<ObjClosure>();
@@ -101,14 +99,27 @@ static Value Pcall(VMCore& vm, Value* args, std::size_t argCount) {
 
     try {
         vm.stack.Push(function);
-        vm.Call(function, 0);
+
+        // Push all the other args, recall that args[0]
+        // is the function so we don't want to push that. We
+        // start our index at 1
+        for (int i = 1; i < argCount; i++) {
+            vm.stack.Push(args[i]);
+        }
+
+        // 'argCount' counts for the function at the start. We
+        // want all the other args
+        vm.Call(function, argCount - 1);
         Value returned = vm.stack.Pop();
+
         result->Set("success", true);
         result->Set("result", returned);
 
-    } catch (std::exception& error) {
+    } catch (Lug::Error&) {
         result->Set("success", false);
-        result->Set("result", ObjString::FromLiteral(vm, error.what()));
+
+        // RuntimeError pushes the payload on the top of the stack.
+        result->Set("result", vm.stack.Peek(0)); 
 
         /*
             When the pcall ends, we want to make sure that any upvalues

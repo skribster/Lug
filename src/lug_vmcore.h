@@ -145,6 +145,8 @@ public:
 
     std::vector<StackFrame> StackTraceback();
     void PushError(Error error);
+
+    Error RuntimeError(Value payload);
     template<typename... Args> Error RuntimeError(const char* format, Args... args);
     template<typename... Args> std::string FormatString(const char* format, Args... args);
     
@@ -198,21 +200,13 @@ std::string VMCore::FormatString(const char* format, Args... args) {
 template<typename... Args>
 Error VMCore::RuntimeError(const char* format, Args... args) {
     std::string errorMessage = FormatString(format, args...);
-    
-    Error error;
-    error.type = InterpretResult::RUNTIME_ERROR;
-    error.message = errorMessage;
-    error.stackTraceback = StackTraceback();
-    error.location = error.stackTraceback.front().location;
 
     ObjString* messageValue = ObjString::FromSource(
         *this, errorMessage.c_str(), 
         std::strlen(errorMessage.c_str())
     );
 
-    stack.Push(messageValue);
-
-    return error;
+    return RuntimeError(messageValue);
 }
 
 }

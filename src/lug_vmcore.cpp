@@ -327,6 +327,26 @@ void VMCore::PushError(Error error) {
 }
 
 
+Error VMCore::RuntimeError(Value payload) {
+    Error error;
+    error.type = InterpretResult::RUNTIME_ERROR;
+
+    if (payload.Is<ObjString>()) {
+        error.message = payload.As<ObjString>()->characters;
+    } else {
+        ObjString* errorMessage = payload.ToString(*this);
+        error.message = errorMessage->characters;
+    }
+    
+    error.stackTraceback = StackTraceback();
+    error.location = error.stackTraceback.front().location;
+
+    stack.Push(payload);
+
+    return error;
+}
+
+
 /**
  * Defines a single native function as a global with 
  * the given name.

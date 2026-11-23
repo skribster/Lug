@@ -83,7 +83,7 @@ struct Error {
      * all the necessary information needed.
      */
     std::string Format() const;
-};  
+};
 
 
 /**

@@ -702,7 +702,7 @@ void ObjDict::Print() {
         const Entry& entry = entries[i];
 
         if (entry.key.Type() == ValueType::TOMBSTONE) continue;
-        if (!entry.key) continue;
+        if (entry.key.IsNil()) continue;
         
         Value::Print(entry.key);
         std::printf(" : ");

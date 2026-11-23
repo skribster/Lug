@@ -1,0 +1,10 @@
+false
+Payload
+false
+5
+false
+can't add operands of type 'number' and 'string' together
+true
+3
+false
+expected 2 argument(s) but got 4
