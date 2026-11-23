@@ -10,6 +10,7 @@
 #include "lug_memory.h"
 #include "lug_stdlib.h"
 #include "lug_filesys.h"
+#include <iostream>
 
 namespace fs = std::filesystem;
 
@@ -171,34 +172,34 @@ Variant VMCore::ToVariant(const Value& value) {
         case ValueType::NUMBER: return Variant{ value.AsNumber() };
 
         case ValueType::OBJ: {
-            if (value.IsObj(ObjType::STRING)) {
-                ObjString* string = value.AsObj<ObjString>();
+            if (value.Is<ObjString>()) {
+                ObjString* string = value.As<ObjString>();
                 return Variant{ std::string(string->characters, string->length) };
             }
             
-            else if (value.IsObj(ObjType::LIST)) {
-                ObjList* list = value.AsObj<ObjList>();
+            else if (value.Is<ObjList>()) {
+                ObjList* list = value.As<ObjList>();
                 Lug::List newList(MakeSharedHandle(list));
 
                 return Variant{ newList }; 
             }
             
-            else if (value.IsObj(ObjType::DICT)) {
-                ObjDict* dict = value.AsObj<ObjDict>();
+            else if (value.Is<ObjDict>()) {
+                ObjDict* dict = value.As<ObjDict>();
                 Lug::Dict newDict(MakeSharedHandle(dict));
 
                 return Variant{ newDict }; 
             }
 
-            else if (value.IsObj(ObjType::THING)) {
-                ObjThing* thing = value.AsObj<ObjThing>();
+            else if (value.Is<ObjThing>()) {
+                ObjThing* thing = value.As<ObjThing>();
                 Lug::Thing newThing(MakeSharedHandle(thing));
 
                 return Variant{ newThing };
             }
 
-            else if (value.IsObj(ObjType::NATIVE)) {
-                ObjNative* native = value.AsObj<ObjNative>();
+            else if (value.Is<ObjNative>()) {
+                ObjNative* native = value.As<ObjNative>();
 
                 if (native->userFunction) {
                     return Variant{ native->userFunction };
@@ -216,13 +217,42 @@ Variant VMCore::ToVariant(const Value& value) {
 /**
  * Gets a value's proto, if there is any.
  */
-ObjThing* VMCore::GetProtoOf(Value value) const {
+ObjThing* VMCore::GetProto(Value value) const {
     Value* proto = builtins.Get(value.StringType());
-    if (proto == nullptr || !proto->IsObj(ObjType::THING)) {
+    if (proto == nullptr || !proto->Is<ObjThing>()) {
         return nullptr;
     }
 
-    return proto->AsObj<ObjThing>();
+    return proto->As<ObjThing>();
+}
+
+
+/**
+ * Attempts to find a dunder method of a given value.
+ * If the value is not already an ObjThing*, it'll look up its proto
+ * and try to find the dunder there.
+ */
+ObjClosure* VMCore::GetDunder(Value value, const char* name) const {
+    if (value.Is<ObjThing>()) {
+        ObjThing* thing = value.As<ObjThing>();
+        const Value* dunder = thing->Get(name);
+
+        if (dunder == nullptr) return nullptr;
+        if (!(dunder->Is<ObjClosure>() || dunder->Is<ObjNative>())) return nullptr;
+
+        return dunder->As<ObjClosure>();
+    }
+
+    if (ObjThing* proto = GetProto(value)) {
+        const Value* dunder = proto->Get(name);
+
+        if (dunder == nullptr) return nullptr;
+        if (!dunder->Is<ObjClosure>()) return nullptr;
+
+        return dunder->As<ObjClosure>();
+    }
+
+    return nullptr;
 }
 
 
@@ -230,7 +260,7 @@ void VMCore::SetGlobal(std::string_view name, const Variant& variant) {
     stack.Push(ToValue(variant, name));
     stack.Push(ObjString::FromSource(*this, name.data(), name.size()));
 
-    builtins.Set(stack.Peek(0).AsObj<ObjString>(), stack.Peek(1));
+    builtins.Set(stack.Peek(0).As<ObjString>(), stack.Peek(1));
 
     stack.Pop(); // ObjString
     stack.Pop(); // Value
@@ -305,7 +335,7 @@ void VMCore::DefineNative(const char* name, NativeFn function) {
     stack.Push(ObjString::FromLiteral(*this, name));
     stack.Push(ObjNative::New(*this, name, function));
 
-    builtins.Set(stack.Peek(1).AsObj<ObjString>(), stack.Peek(0));
+    builtins.Set(stack.Peek(1).As<ObjString>(), stack.Peek(0));
 
     stack.Pop();
     stack.Pop();
@@ -322,9 +352,9 @@ ObjModule* VMCore::LoadModule(fs::path importerPath, fs::path modulePath) {
     ObjString* moduleName = ObjString::FromLiteral(*this, modulePath.string().c_str());
     stack.Push(moduleName);
     Value* cached = modules.Get(moduleName);
-    if (cached && cached->IsObj(ObjType::MODULE)) {
+    if (cached && cached->Is<ObjModule>()) {
         stack.Pop();
-        return cached->AsObj<ObjModule>();
+        return cached->As<ObjModule>();
     }
 
     auto source = config.loadModuleFn(*name);
@@ -638,17 +668,16 @@ NO_INLINE void VMCore::PushFrameSlow(ObjClosure* closure, std::uint8_t argCount,
 bool VMCore::CallValue(Value value, std::uint8_t argCount, std::uint8_t shared) {
     if (!value.IsObj()) {
         throw RuntimeError("attempted to call a '%s' value", value.StringType());
-        return false;
     }
 
     switch (value.AsObj()->Type()) {
         case ObjType::CLOSURE: {
-            PushFrame(value.AsObj<ObjClosure>(), argCount, shared);
+            PushFrame(value.As<ObjClosure>(), argCount, shared);
             return true;
         }
             
         case ObjType::NATIVE: {               
-            ObjNative* native = value.AsObj<ObjNative>();
+            ObjNative* native = value.As<ObjNative>();
 
             Value result;
             if (native->function) {
@@ -682,7 +711,7 @@ bool VMCore::CallValue(Value value, std::uint8_t argCount, std::uint8_t shared) 
         case ObjType::THING: {
             // Check if the 'thing' has a '__call__' dunder 
             // attached to it.
-            ObjThing* thing = value.AsObj<ObjThing>();
+            ObjThing* thing = value.As<ObjThing>();
             const Value* callDunder = thing->Get("__call__");
             if (callDunder == nullptr) break;
                 
@@ -690,13 +719,24 @@ bool VMCore::CallValue(Value value, std::uint8_t argCount, std::uint8_t shared) 
         }
 
         default: {
-            ObjThing* valueProto = GetProtoOf(value);
+            ObjThing* valueProto = GetProto(value);
             if (valueProto != nullptr) return CallValue(valueProto, argCount, shared);
             return false;
         }
     }
 
     return false;
+}
+
+
+bool VMCore::CallDunder(Value dunder, std::initializer_list<Value> args, std::uint8_t shared) {
+    stack.Push(dunder);
+    for (const Value& arg : args) {
+        stack.Push(arg);
+    }
+
+    std::size_t argCount = args.size();
+    return CallValue(dunder, argCount, shared);
 }
 
 
@@ -757,21 +797,48 @@ void VMCore::Run() {
     bool isShortOp = false;
 
     #define READ_BYTE() (*frame->ip++)
-    #define READ_STRING() (READ_CONSTANT().AsObj<ObjString>())
+    #define READ_STRING() (READ_CONSTANT().As<ObjString>())
     #define READ_SHORT() ((READ_BYTE() << 8) | READ_BYTE())
     #define READ_CONSTANT() (frame->closure->function->chunk.constants[isShortOp ? READ_SHORT() : READ_BYTE()])
 
     #define JUMP_FORWARD(bytes) (frame->ip += bytes)
     #define JUMP_BACKWARD(bytes) (frame->ip -= bytes)
 
-    #define BINARY_OP(op)                                   \
-    do {                                                    \
-        Value b = stack.Pop();                              \
-        Value a = stack.Pop();                              \
-        if (!a.IsNumber() || !b.IsNumber()) {               \
-            throw RuntimeError("operands must be numbers"); \
-        }                                                   \
-        stack.Push(a.AsNumber() op b.AsNumber());           \
+    #define BINARY_OP(op)                                       \
+    do {                                                        \
+        Value a = stack.Peek(1);                                \
+        Value b = stack.Peek(0);                                \
+                                                                \
+        if (a.IsNumber() && b.IsNumber()) {                     \
+            stack.Pop(); /* b */                                \
+            stack.Pop(); /* a */                                \
+                                                                \
+            stack.Push(a.AsNumber() op b.AsNumber());           \
+            DISPATCH();                                         \
+        }                                                       \
+    } while (false)
+
+
+    #define BINARY_DUNDER(name)                                 \
+    do {                                                        \
+        Value left = stack.Peek(1);                             \
+        Value right = stack.Peek(0);                            \
+                                                                \
+        if (ObjClosure* leftAdd = GetDunder(left, name)) {      \
+            stack.Pop(); /* right */                            \
+            stack.Pop(); /* left */                             \
+                                                                \
+            CALL_DUNDER(leftAdd, { left, right }, 0b11);        \
+            DISPATCH();                                         \
+        }                                                       \
+                                                                \
+        if (ObjClosure* rightAdd = GetDunder(right, name)) {    \
+            stack.Pop(); /* right */                            \
+            stack.Pop(); /* left */                             \
+                                                                \
+            CALL_DUNDER(rightAdd, { right, left }, 0b11);       \
+            DISPATCH();                                         \
+        }                                                       \
     } while (false)
 
 
@@ -784,14 +851,30 @@ void VMCore::Run() {
             stack.Push(a.AsNumber() op b.AsNumber());                                   \
         }                                                                               \
                                                                                         \
-        else if (b.IsObj(ObjType::STRING) && a.IsObj(ObjType::STRING)) {                \
-            stack.Push(*a.AsObj<ObjString>() op *b.AsObj<ObjString>());                 \
+        else if (b.Is<ObjString>() && a.Is<ObjString>()) {                              \
+            stack.Push(*a.As<ObjString>() op *b.As<ObjString>());                       \
         }                                                                               \
                                                                                         \
         else {                                                                          \
             throw RuntimeError("operands must be two numbers or two strings");          \
         }                                                                               \
-    } while (false)                                                                     \
+    } while (false)
+
+    #define REFRESH_FRAME()                                                             \
+    do {                                                                                \
+        frame = stack.GetFrame();                                                       \
+        module = frame->closure->module;                                                \
+    } while (false)
+
+    #define CALL_VALUE(...)                                                             \
+    do {                                                                                \
+        if (CallValue(__VA_ARGS__)) REFRESH_FRAME();                                    \
+    } while (false)  
+
+    #define CALL_DUNDER(...)                                                            \
+    do {                                                                                \
+        if (CallDunder(__VA_ARGS__)) REFRESH_FRAME();                                   \
+    } while (false)
 
 
     // Dispatch table shenanigans -------------------
@@ -889,23 +972,24 @@ void VMCore::Run() {
         }
 
         CASE(ADD): {
-            if (stack.Peek(0).IsObj(ObjType::STRING) && stack.Peek(1).IsObj(ObjType::STRING)) {
-                ObjString* b = stack.Peek(0).AsObj<ObjString>();
-                ObjString* a = stack.Peek(1).AsObj<ObjString>();
-                ObjString* concatenated = a->Concatenate(b);
-                
-                stack.Pop();
-                stack.Pop();
-                stack.Push(concatenated);
-                
-                
-            } else if (stack.Peek(0).IsNumber() && stack.Peek(1).IsNumber()) {
+            if (stack.Peek(0).IsNumber() && stack.Peek(1).IsNumber()) {
                 double b = stack.Pop().AsNumber();
                 double a = stack.Pop().AsNumber();
 
                 stack.Push(a + b);
 
+            } else if (stack.Peek(0).Is<ObjString>() && stack.Peek(1).Is<ObjString>()) {
+                ObjString* b = stack.Peek(0).As<ObjString>();
+                ObjString* a = stack.Peek(1).As<ObjString>();
+                ObjString* concatenated = a->Concatenate(b);
+                
+                stack.Pop();
+                stack.Pop();
+                stack.Push(concatenated);
+
             } else {
+                BINARY_DUNDER("__add__");
+
                 throw RuntimeError("can't add operands of type '%s' and '%s' together", 
                     stack.Peek(1).StringType(), 
                     stack.Peek(0).StringType()
@@ -917,21 +1001,39 @@ void VMCore::Run() {
 
         CASE(SUBTRACT): {
             BINARY_OP(-);
-            DISPATCH();
-        }
+            BINARY_DUNDER("__subtract__");
 
+            throw RuntimeError(
+                "can't add operands of type '%s' and %s' together", 
+                stack.Peek(0).StringType(), 
+                stack.Peek(1).StringType()
+            );
+        }
+        
         CASE(MULTIPLY): {
             BINARY_OP(*);
-            DISPATCH();
+            BINARY_DUNDER("__multiply__");
+
+            throw RuntimeError(
+                "can't add operands of type '%s' and %s' together", 
+                stack.Peek(0).StringType(), 
+                stack.Peek(1).StringType()
+            );
         }
 
         CASE(DIVIDE): {
-            if (stack.Peek(0).IsNumber() && stack.Peek(0).AsNumber() == 0) {
+            if (Value right = stack.Peek(0); right.IsNumber() && right.AsNumber() == 0) {
                 throw RuntimeError("can't divide by zero");
             }
 
             BINARY_OP(/);
-            DISPATCH();
+            BINARY_DUNDER("__divide__");
+
+            throw RuntimeError(
+                "can't add operands of type '%s' and %s' together", 
+                stack.Peek(0).StringType(), 
+                stack.Peek(1).StringType()
+            );
         }
 
         CASE(MODULO): {
@@ -1123,8 +1225,8 @@ void VMCore::Run() {
             Value& key = stack.Peek(1);
             Value& iterable = stack.Peek(0);
             
-            if (iterable.IsObj(ObjType::LIST)) {
-                ObjList* list = iterable.AsObj<ObjList>();
+            if (iterable.Is<ObjList>()) {
+                ObjList* list = iterable.As<ObjList>();
                 if (!key.IsNumber()) key = 0;
 
                 // Check if the index is the same or higher as the count of the list
@@ -1139,8 +1241,8 @@ void VMCore::Run() {
                 value = *listValue;
             } 
             
-            else if (iterable.IsObj(ObjType::DICT)) {
-                ObjDict* dict = iterable.AsObj<ObjDict>();
+            else if (iterable.Is<ObjDict>()) {
+                ObjDict* dict = iterable.As<ObjDict>();
                 Value& probingIndex = stack.Peek(3);
                 if (!probingIndex.IsNumber()) probingIndex = 0;
 
@@ -1181,8 +1283,8 @@ void VMCore::Run() {
             Value& key = stack.Peek(1);
             Value& iterable = stack.Peek(0);
 
-            if (iterable.IsObj(ObjType::LIST)) {
-                ObjList* list = iterable.AsObj<ObjList>();
+            if (iterable.Is<ObjList>()) {
+                ObjList* list = iterable.As<ObjList>();
                 key = key.AsInteger() + 1;
 
                 // Check if we exceeded the index count. If so, that means
@@ -1199,8 +1301,8 @@ void VMCore::Run() {
                 }
             } 
 
-            else if (iterable.IsObj(ObjType::DICT)) {
-                ObjDict* dict = iterable.AsObj<ObjDict>();
+            else if (iterable.Is<ObjDict>()) {
+                ObjDict* dict = iterable.As<ObjDict>();
                 Value& probingIndex = stack.Peek(3);
                 LUG_ASSERT(probingIndex.IsInteger(), "invalid type for probing index");
 
@@ -1341,10 +1443,7 @@ void VMCore::Run() {
             std::uint8_t argCount = READ_BYTE();
             
             // Attempt to call the callee, whether it is of any value type.
-            if (CallValue(stack.Peek(argCount), argCount, 0b0)) {
-                frame = stack.GetFrame();
-                module = frame->closure->module;
-            }
+            CALL_VALUE(stack.Peek(argCount), argCount);
             
             DISPATCH();
         }
@@ -1353,10 +1452,7 @@ void VMCore::Run() {
             std::uint8_t argCount = READ_BYTE();
             std::uint8_t shared = READ_BYTE();
 
-            if (CallValue(stack.Peek(argCount), argCount, shared)) {
-                frame = stack.GetFrame();
-                module = frame->closure->module;
-            };
+            CALL_VALUE(stack.Peek(argCount), argCount, shared);
             
             DISPATCH();
         }
@@ -1368,13 +1464,13 @@ void VMCore::Run() {
 
             // If the object is of type 'thing', then 'thing' is
             // the object.
-            if (object.IsObj(ObjType::THING)) {
-                thing = object.AsObj<ObjThing>();
+            if (object.Is<ObjThing>()) {
+                thing = object.As<ObjThing>();
 
             // If it's not a 'thing', we'll see if the object has a
             // proto.
-            } else if (GetProtoOf(object) != nullptr) {
-                thing = GetProtoOf(object);
+            } else if (GetProto(object) != nullptr) {
+                thing = GetProto(object);
             }
 
             // If we still haven't gotten the 'thing' yet, we throw an error.
@@ -1396,7 +1492,7 @@ void VMCore::Run() {
         }
 
         CASE(CLOSURE): {
-            ObjFunction* function = READ_CONSTANT().AsObj<ObjFunction>();
+            ObjFunction* function = READ_CONSTANT().As<ObjFunction>();
             ObjClosure* closure = ObjClosure::New(*this, function, module);
             stack.Push(closure);
 
@@ -1448,7 +1544,7 @@ void VMCore::Run() {
         }
 
         CASE(APPEND): {
-            ObjList* list = stack.Peek(1).AsObj<ObjList>();
+            ObjList* list = stack.Peek(1).As<ObjList>();
 
             // Keep the value on the stack until after we append
             // to prevent the GC from collecting it in the case that
@@ -1461,7 +1557,7 @@ void VMCore::Run() {
         }
 
         CASE(DEFINE_ENTRY): {
-            ObjDict* dictionary = stack.Peek(2).AsObj<ObjDict>();
+            ObjDict* dictionary = stack.Peek(2).As<ObjDict>();
             const Value& key = stack.Peek(1);
             const Value& value = stack.Peek(0);
 
@@ -1479,10 +1575,10 @@ void VMCore::Run() {
             //                 ^^^^^ stackTop. You are here.
             Value& collection = stack.Peek(1);
             
-            if (collection.IsObj(ObjType::LIST)) {
+            if (collection.Is<ObjList>()) {
                 if (!stack.Peek(0).IsInteger()) throw RuntimeError("list index must be an integer");
                 
-                ObjList* list = collection.AsObj<ObjList>();
+                ObjList* list = collection.As<ObjList>();
 
                 int index = stack.Peek(0).AsInteger();
                 const Value* value = list->Get(index);
@@ -1497,8 +1593,8 @@ void VMCore::Run() {
                 DISPATCH();
             }
 
-            if (collection.IsObj(ObjType::DICT)) {
-                ObjDict* dict = collection.AsObj<ObjDict>();
+            if (collection.Is<ObjDict>()) {
+                ObjDict* dict = collection.As<ObjDict>();
 
                 Value& key = stack.Peek(0);
                 const Value* value = dict->Get(key);
@@ -1513,9 +1609,9 @@ void VMCore::Run() {
                 DISPATCH();
             }
 
-            if (collection.IsObj(ObjType::STRING)) {
+            if (collection.Is<ObjString>()) {
                 if (!stack.Peek(0).IsInteger()) throw RuntimeError("string index must be an integer");
-                ObjString* string = collection.AsObj<ObjString>();
+                ObjString* string = collection.As<ObjString>();
                 int index = stack.Pop().AsInteger();
 
                 stack.Pop(); // collection
@@ -1525,22 +1621,12 @@ void VMCore::Run() {
                 DISPATCH();
             }
 
-            if (collection.IsObj(ObjType::THING)) {
-                ObjThing* thing = collection.AsObj<ObjThing>();
-
-                const Value* indexDunder = thing->Get("__index__");
-                if (indexDunder) {
+            if (collection.Is<ObjThing>()) {
+                if (ObjClosure* indexDunder = GetDunder(collection, "__index__")) {
                     Value index = stack.Pop(); // Index
                     stack.Pop(); // Collection
 
-                    stack.Push(*indexDunder);
-                    stack.Push(thing);
-                    stack.Push(index);
-
-                    if (CallValue(*indexDunder, 2, 0b1)) {
-                        frame = stack.GetFrame();
-                        module = frame->closure->module;
-                    }
+                    CALL_DUNDER(indexDunder, { collection, index }, 0b1);
 
                     DISPATCH();
                 }
@@ -1554,7 +1640,7 @@ void VMCore::Run() {
             // [ collection ][ index ][ newValue ]
             //                                    ^^^^^^ stackTop. You are here.
             Value& collection = stack.Peek(2);
-            if (!collection.IsObj(ObjType::LIST) && !collection.IsObj(ObjType::DICT)) {
+            if (!collection.Is<ObjList>() && !collection.Is<ObjDict>()) {
                 throw RuntimeError("value of type '%s' is not indexable", stack.Peek(2).StringType());
             }
 
@@ -1565,7 +1651,7 @@ void VMCore::Run() {
                     // Lists must always have integers as indices.
                     if (!stack.Peek(1).IsInteger()) throw RuntimeError("list index must be an integer");
                     
-                    ObjList* list = collection.AsObj<ObjList>();
+                    ObjList* list = collection.As<ObjList>();
                     int index = stack.Peek(1).AsInteger();
                     list->Set(index, newValue); 
 
@@ -1573,7 +1659,7 @@ void VMCore::Run() {
                 }
 
                 case ObjType::DICT: {
-                    ObjDict* dictionary = collection.AsObj<ObjDict>();
+                    ObjDict* dictionary = collection.As<ObjDict>();
 
                     // Dictionaries have Lua semantics, where setting a key to nil
                     // removes the entry entirely.
@@ -1608,14 +1694,14 @@ void VMCore::Run() {
             AttributeCache& cache = frame->closure->function->chunk.attributeCaches[cacheId];
 
             const Value& receiver = stack.Peek(0);
-            if (receiver.IsObj() && receiver.AsObj() == cache.receiver && globalEpoch == cache.cachedEpoch) {
+            if (receiver.Is<Obj>() && receiver.As<Obj>() == cache.receiver && globalEpoch == cache.cachedEpoch) {
                 stack.Pop(); // Receiver
                 stack.Push(*cache.value);
                 DISPATCH();
             } 
             
-            if (stack.Peek(0).IsObj(ObjType::CATEGORY)) {
-                ObjCategory* category = stack.Peek(0).AsObj<ObjCategory>();
+            if (stack.Peek(0).Is<ObjCategory>()) {
+                ObjCategory* category = stack.Peek(0).As<ObjCategory>();
                 const Value* type = category->GetType(attributeName);
                 if (type == nullptr) {
                     throw RuntimeError("type '%s' does not exist in category", attributeName->characters);
@@ -1628,8 +1714,8 @@ void VMCore::Run() {
                 DISPATCH();
             }
             
-            if (stack.Peek(0).IsObj(ObjType::THING)) {
-                ObjThing* thing = stack.Peek(0).AsObj<ObjThing>();
+            if (stack.Peek(0).Is<ObjThing>()) {
+                ObjThing* thing = stack.Peek(0).As<ObjThing>();
                 const Value* value = thing->Get(attributeName);
 
                 if (value == nullptr) {
@@ -1644,7 +1730,7 @@ void VMCore::Run() {
                 DISPATCH();
             }
 
-            ObjThing* proto = GetProtoOf(stack.Peek(0));
+            ObjThing* proto = GetProto(stack.Peek(0));
             if (proto) {
                 const Value* value = proto->Get(attributeName);
                 if (value == nullptr) {
@@ -1673,8 +1759,8 @@ void VMCore::Run() {
             Value object = stack.Peek(1);
             Value value = stack.Peek(0);
 
-            if (object.IsObj(ObjType::THING)) {
-                ObjThing* thing = object.AsObj<ObjThing>();
+            if (object.Is<ObjThing>()) {
+                ObjThing* thing = object.As<ObjThing>();
                 thing->Set(attributeName, value);
 
                 stack.Pop();
@@ -1684,8 +1770,8 @@ void VMCore::Run() {
                 DISPATCH();
             }
 
-            if (object.IsObj(ObjType::CATEGORY)) {
-                ObjCategory* category = object.AsObj<ObjCategory>();
+            if (object.Is<ObjCategory>()) {
+                ObjCategory* category = object.As<ObjCategory>();
 
                 // Note that we cannot add new kinds after the category literal.
                 // category->AddType will error for us when we try and re-define
@@ -1715,35 +1801,32 @@ void VMCore::Run() {
 
             Value object = stack.Pop();
 
-            if (object.IsObj(ObjType::LIST)) {
-                stack.Push(object.AsObj<ObjList>()->Slice(start, end));
+            if (object.Is<ObjList>()) {
+                stack.Push(object.As<ObjList>()->Slice(start, end));
                 DISPATCH();
             }
 
-            if (object.IsObj(ObjType::STRING)) {
-                ObjString* string = object.AsObj<ObjString>();
+            if (object.Is<ObjString>()) {
+                ObjString* string = object.As<ObjString>();
                 stack.Push(string->Sub(start, end));
 
                 DISPATCH();
             }
 
-            if (object.IsObj(ObjType::THING)) {
-                ObjThing* thing = object.AsObj<ObjThing>();
+            if (object.Is<ObjThing>()) {
+                ObjThing* thing = object.As<ObjThing>();
 
                 const Value* sliceDunder = thing->Get("__slice__");
                 if (sliceDunder != nullptr) {
-                    stack.Push(*sliceDunder);
                     // [ __slice__ ][ object ][ start ][ end ]
                     //   ^^^^^^^^^    ^^^^^^^^^^^^^^^^^^^^^^
                     //    dunder              args (x3)
-                    stack.Push(object); // (shared)
-                    stack.Push(start);
-                    stack.Push(end);
 
-                    if (CallValue(*sliceDunder, 3, 0b001)) {
-                        frame = stack.GetFrame();
-                        module = frame->closure->module;
-                    }
+                    CALL_DUNDER(*sliceDunder, { 
+                        object /* shared */, 
+                        start, 
+                        end 
+                    }, 0b001);
 
                     DISPATCH();
                 }
@@ -1778,6 +1861,9 @@ void VMCore::Run() {
 
     #undef JUMP_FORWARD
     #undef JUMP_BACKWARD
+
+    #undef REFRESH_FRAME
+    #undef CALL_VALUE
 
     #undef BINARY_OP
 }

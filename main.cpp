@@ -82,18 +82,6 @@ int main(int argc, char* argv[]) {
     Lug::VM vm(config);
     vm.LoadLibrary(Lug::LibInclude::ALL);
 
-    Lug::Thing player = vm.NewThing();
-    player["health"] = 20;
-    player["takeDamage"] = [](Lug::Thing self, double damage) {
-        self["health"] = self["health"].AsOr<double>(0) - damage;
-    };
-
-    vm["Player"] = player;
-
-    Lug::Dict dict = vm.NewDict();
-    dict[2] = "whatever";
-    vm["what"] = dict;
-
     if (argc == 1) {
         Repl(vm);
     } else if (argc == 2) {

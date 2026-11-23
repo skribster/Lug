@@ -362,7 +362,7 @@ std::size_t DisassembleInstruction(Chunk& chunk, std::size_t offset, bool isShor
             Value::Print(chunk.constants[constant]);
             std::printf("\n");
 
-            ObjFunction* function = chunk.constants[constant].AsObj<ObjFunction>();
+            ObjFunction* function = chunk.constants[constant].As<ObjFunction>();
             for (int j = 0; j < function->upvalueCount; j++) {
                 int isLocal = chunk.bytecode[offset++];
                 int index = chunk.bytecode[offset++];

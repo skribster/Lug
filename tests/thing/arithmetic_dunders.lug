@@ -1,0 +1,61 @@
+box Vec3 <- thing {
+    x <- 0,
+    y <- 0,
+    z <- 0
+}
+
+
+Vec3.new <- function(x, y, z)
+    return thing of Vec3 {
+        x <- x,
+        y <- y,
+        z <- z
+    }
+end
+
+
+Vec3.__add__ <- function(shared self, shared other)
+    if type(other) != "thing" or other.__proto__ != Vec3 then   
+        error("can't add Vec3 with " + type(other))
+    end
+    
+    return Vec3.new(self.x + other.x, self.y + other.y, self.z + other.z)
+end
+
+Vec3.__subtract__ <- function(shared self, shared other)
+    if type(other) != "thing" or other.__proto__ != Vec3 then   
+        error("can't add Vec3 with " + type(other))
+    end
+    
+    return Vec3.new(self.x - other.x, self.y - other.y, self.z - other.z)
+end
+
+Vec3.__multiply__ <- function(shared self, shared other)
+    if type(other) != "thing" or other.__proto__ != Vec3 then   
+        error("can't add Vec3 with " + type(other))
+    end
+    
+    return Vec3.new(self.x * other.x, self.y * other.y, self.z * other.z)
+end
+
+Vec3.__divide__ <- function(shared self, shared other)
+    if type(other) != "thing" or other.__proto__ != Vec3 then   
+        error("can't add Vec3 with " + type(other))
+    end
+    
+    return Vec3.new(self.x / other.x, self.y / other.y, self.z / other.z)
+end
+
+
+Vec3.__tostring__ <- function(shared self)
+    return "Vec3(" + string(self.x) + ", " + string(self.y) + ", " + string(self.z) + ")"
+end
+
+
+box a <- Vec3.new(1, 4, 9)
+box b <- Vec3.new(4, 2, 1)
+
+print(a + b) // expect: Vec3(5, 6, 10)
+print(a - b) // expect: Vec3(-3, 2, 8)
+print(a * b) // expect: Vec3(4, 8, 9)
+print(a / b) // expect: Vec3(0.25, 2, 9)

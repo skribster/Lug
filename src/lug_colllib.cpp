@@ -14,7 +14,7 @@ static Value Append(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 2);
     CheckType(vm, args[0], ObjType::LIST);
 
-    ObjList* list = args[0].AsObj<ObjList>();
+    ObjList* list = args[0].As<ObjList>();
     Value value = args[1];
 
     list->Append(value);
@@ -27,7 +27,7 @@ static Value Remove(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 2);
     CheckType(vm, args[0], ObjType::LIST);
 
-    ObjList* list = args[0].AsObj<ObjList>();
+    ObjList* list = args[0].As<ObjList>();
     Value requestRemoved = args[1];
 
     for (std::size_t i = 0; i < list->Count(); i++) {
@@ -48,7 +48,7 @@ static Value Insert(VMCore& vm, Value* args, std::size_t argCount) {
     CheckType(vm, args[1], ValueType::NUMBER);
     if (!args[1].IsInteger()) TypeError(vm, "integer", args[1].StringType());
 
-    ObjList* list = args[0].AsObj<ObjList>();
+    ObjList* list = args[0].As<ObjList>();
     int index = args[1].AsInteger();
     const Value& value = args[2];
 
@@ -60,7 +60,7 @@ static Value Insert(VMCore& vm, Value* args, std::size_t argCount) {
 
 static Value Pop(VMCore& vm, Value* args, std::size_t argCount) {
     CheckType(vm, args[0], ObjType::LIST);
-    ObjList* list = args[0].AsObj<ObjList>();
+    ObjList* list = args[0].As<ObjList>();
     
     // list.pop(list)
     if (argCount == 1) {
@@ -81,7 +81,7 @@ static Value Clone(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);
     CheckType(vm, args[0], ObjType::LIST);
 
-    ObjList* list = args[0].AsObj<ObjList>();
+    ObjList* list = args[0].As<ObjList>();
     return list->Copy();
 }
 
@@ -90,7 +90,7 @@ static Value Sum(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);
     CheckType(vm, args[0], ObjType::LIST);
 
-    ObjList* list = args[0].AsObj<ObjList>();
+    ObjList* list = args[0].As<ObjList>();
 
     int sum = 0;
     for (auto& item : *list) {
@@ -107,7 +107,7 @@ static Value Length(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);
     CheckType(vm, args[0], ObjType::LIST);
 
-    ObjList* list = args[0].AsObj<ObjList>();
+    ObjList* list = args[0].As<ObjList>();
 
     return static_cast<int>(list->Count());
 }
@@ -118,7 +118,7 @@ static Value Get(VMCore& vm, Value* args, std::size_t argCount) {
     CheckType(vm, args[0], ObjType::LIST);
     CheckType(vm, args[1], ValueType::NUMBER);
 
-    ObjList* list = args[0].AsObj<ObjList>();   
+    ObjList* list = args[0].As<ObjList>();   
     if (!args[1].IsInteger()) {
         TypeError(vm, "integer", args[1].StringType());
     }
@@ -136,7 +136,7 @@ static Value Index(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 2);
     CheckType(vm, args[0], ObjType::LIST);
     
-    ObjList* list = args[0].AsObj<ObjList>();
+    ObjList* list = args[0].As<ObjList>();
     Value& value = args[1];
 
     for (int i = 0; i < list->Count(); i++) {
@@ -154,8 +154,8 @@ static Value Concat(VMCore& vm, Value* args, std::size_t argCount) {
     CheckType(vm, args[0], ObjType::LIST);
     CheckType(vm, args[1], ObjType::LIST);
 
-    ObjList* listA = args[0].AsObj<ObjList>();
-    ObjList* listB = args[1].AsObj<ObjList>();
+    ObjList* listA = args[0].As<ObjList>();
+    ObjList* listB = args[1].As<ObjList>();
 
     ObjList* newList = ObjList::New(vm);
     vm.stack.Push(newList);
@@ -178,7 +178,7 @@ static Value Clear(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);
     CheckType(vm, args[0], ObjType::LIST);
 
-    ObjList* list = args[0].AsObj<ObjList>();
+    ObjList* list = args[0].As<ObjList>();
     list->items->data.Clear();
 
     return Value::Nil();
@@ -190,8 +190,8 @@ static Value Join(VMCore& vm, Value* args, std::size_t argCount) {
     CheckType(vm, args[0], ObjType::LIST);
     CheckType(vm, args[1], ObjType::STRING);
 
-    ObjList* list = args[0].AsObj<ObjList>();
-    ObjString* separator = args[1].AsObj<ObjString>();
+    ObjList* list = args[0].As<ObjList>();
+    ObjString* separator = args[1].As<ObjString>();
 
     // Create a buffer to hold the joined string together
     Vector<char> joinBuffer(vm);
@@ -235,7 +235,7 @@ static Value Clear(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);
     CheckType(vm, args[0], ObjType::DICT);
 
-    ObjDict* dict = args[0].AsObj<ObjDict>();
+    ObjDict* dict = args[0].As<ObjDict>();
     
     for (auto& entry : dict->entries) {
         dict->Delete(entry.key);
@@ -249,7 +249,7 @@ static Value Length(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);
     CheckType(vm, args[0], ObjType::DICT);
 
-    ObjDict* dict = args[0].AsObj<ObjDict>();
+    ObjDict* dict = args[0].As<ObjDict>();
 
     return static_cast<int>(dict->entries.count);
 }
@@ -259,7 +259,7 @@ static Value Get(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 2);
     CheckType(vm, args[0], ObjType::DICT);
 
-    ObjDict* dict = args[0].AsObj<ObjDict>();
+    ObjDict* dict = args[0].As<ObjDict>();
     Value key = args[1];
     const Value* value = dict->Get(key);
 
@@ -273,7 +273,7 @@ static Value Clone(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);
     CheckType(vm, args[0], ObjType::DICT);
 
-    ObjDict* dict = args[0].AsObj<ObjDict>();
+    ObjDict* dict = args[0].As<ObjDict>();
 
     return dict->Copy();
 }
@@ -283,7 +283,7 @@ static Value Remove(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 2);
     CheckType(vm, args[0], ObjType::DICT);
 
-    ObjDict* dict = args[0].AsObj<ObjDict>();
+    ObjDict* dict = args[0].As<ObjDict>();
     Value& keyToRemove = args[1];
     
     dict->Delete(keyToRemove);
@@ -296,7 +296,7 @@ static Value Values(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);
     CheckType(vm, args[0], ObjType::DICT);
 
-    ObjDict* dict = args[0].AsObj<ObjDict>();
+    ObjDict* dict = args[0].As<ObjDict>();
     ObjList* values = ObjList::New(vm);
     vm.stack.Push(values);
 
@@ -314,7 +314,7 @@ static Value Keys(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);
     CheckType(vm, args[0], ObjType::DICT);
 
-    ObjDict* dict = args[0].AsObj<ObjDict>();
+    ObjDict* dict = args[0].As<ObjDict>();
     ObjList* keys = ObjList::New(vm);
     vm.stack.Push(keys);
 
@@ -332,7 +332,7 @@ static Value Has(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 2);
     CheckType(vm, args[0], ObjType::DICT);
 
-    ObjDict* dict = args[0].AsObj<ObjDict>();
+    ObjDict* dict = args[0].As<ObjDict>();
     Value& has = args[1];
 
     return dict->Get(has) != nullptr ? true : false;

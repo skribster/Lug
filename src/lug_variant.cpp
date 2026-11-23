@@ -13,7 +13,7 @@ bool Impl::ObjectRef::IsValid() const {
 Variant Thing::Get(std::string_view key) const {
     if (!IsValid()) throw UserError("can't use an object whose VM has already been destroyed");
     
-    ObjThing* thing = handle->value.AsObj<ObjThing>();
+    ObjThing* thing = handle->value.As<ObjThing>();
     const Value* value = thing->Get(key.data());
     if (value == nullptr) return Variant{ };
     
@@ -24,7 +24,7 @@ Variant Thing::Get(std::string_view key) const {
 void Thing::Set(std::string_view key, const Variant& value) {
     if (!IsValid()) throw UserError("can't use an object whose VM has already been destroyed");
    
-    ObjThing* thing = handle->value.AsObj<ObjThing>();
+    ObjThing* thing = handle->value.As<ObjThing>();
     
     const char* name = key.data();
     thing->Set(name, handle->vm->ToValue(value, name));
@@ -47,7 +47,7 @@ Lug::Variant Thing::operator[](std::string_view attribute) const {
 Variant List::Get(int index) const {
     if (!IsValid()) throw UserError("can't use an object whose VM has already been destroyed");
     
-    ObjList* list = handle->value.AsObj<ObjList>();
+    ObjList* list = handle->value.As<ObjList>();
     VMCore* vm = handle->vm;
     
     Value* value = list->Get(index);
@@ -60,7 +60,7 @@ Variant List::Get(int index) const {
 void List::Set(int index, const Variant& value) {
     if (!IsValid()) throw UserError("can't use an object whose VM has already been destroyed");
 
-    ObjList* list = handle->value.AsObj<ObjList>();
+    ObjList* list = handle->value.As<ObjList>();
     VMCore* vm = handle->vm;
     
     Value newValue = vm->ToValue(value);
@@ -74,7 +74,7 @@ void List::Set(int index, const Variant& value) {
 void List::Append(const Variant& item) {
     if (!IsValid()) throw UserError("can't use an object whose VM has already been destroyed");
     
-    ObjList* list = handle->value.AsObj<ObjList>();
+    ObjList* list = handle->value.As<ObjList>();
     VMCore* vm = handle->vm;
     
     list->Append(vm->ToValue(item));
@@ -97,7 +97,7 @@ Variant List::operator[](int index) const {
 void Dict::Set(const Variant& k, const Variant& v) {
     if (!IsValid()) throw UserError("can't use an object whose VM has already been destroyed");
     
-    ObjDict* dict = handle->value.AsObj<ObjDict>();
+    ObjDict* dict = handle->value.As<ObjDict>();
     VMCore* vm = handle->vm;
     
     Value key = vm->ToValue(k);
@@ -116,7 +116,7 @@ void Dict::Set(const Variant& k, const Variant& v) {
 Variant Dict::Get(const Variant& k) const {
     if (!IsValid()) throw UserError("can't use an object whose VM has already been destroyed");
     
-    ObjDict* dict = handle->value.AsObj<ObjDict>();
+    ObjDict* dict = handle->value.As<ObjDict>();
     VMCore* vm = handle->vm;
 
     Value key = vm->ToValue(k);

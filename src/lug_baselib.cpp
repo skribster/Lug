@@ -61,10 +61,8 @@ static Value Error(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);
     CheckType(vm, args[0], ObjType::STRING);
 
-    ObjString* errorMessage = args[0].AsObj<ObjString>();
+    ObjString* errorMessage = args[0].As<ObjString>();
     throw vm.RuntimeError(errorMessage->characters);
-    
-    return 0;
 }
 
 
@@ -74,7 +72,7 @@ static Value Assert(VMCore& vm, Value* args, std::size_t argCount) {
     CheckType(vm, args[1], ObjType::STRING);
 
     if (!args[0].AsBool()) {
-        ObjString* errorMessage = args[1].AsObj<ObjString>();
+        ObjString* errorMessage = args[1].As<ObjString>();
         ObjString* assertionPrefix = ObjString::FromLiteral(vm, "assertion failed: ");
         ObjString* fullMessage = assertionPrefix->Concatenate(errorMessage);
 
@@ -89,7 +87,7 @@ static Value Pcall(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);
     CheckType(vm, args[0], ObjType::CLOSURE);
 
-    ObjClosure* function = args[0].AsObj<ObjClosure>();
+    ObjClosure* function = args[0].As<ObjClosure>();
     ObjThing* result = ObjThing::New(vm);
     vm.stack.Push(result);
 
@@ -160,7 +158,7 @@ static Value Unbox(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);
     CheckType(vm, args[0], ObjType::STRING);
 
-    ObjString* filePath = args[0].AsObj<ObjString>();
+    ObjString* filePath = args[0].As<ObjString>();
     auto resolved = Filesystem::ResolveModulePath(vm.stack.CurrentModulePath(), filePath->characters);
     if (!resolved) {
         throw vm.RuntimeError("could not find script '%s'", filePath->characters);

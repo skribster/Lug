@@ -76,8 +76,8 @@ static Value __Call__(VMCore& vm, Value* args, std::size_t argCount) {
     if (value.IsNumber()) return value;
     if (value.IsBool()) return value.AsBool() ? 1 : 0;
     
-    if (value.IsObj(ObjType::STRING)) {
-        ObjString* string = value.AsObj<ObjString>();
+    if (value.Is<ObjString>()) {
+        ObjString* string = value.As<ObjString>();
         char* characters = string->characters;
         std::size_t length = string->length;
 

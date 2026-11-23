@@ -59,7 +59,15 @@ inline bool Value::IsObj(ObjType type) const {
 // ObjString -----------------
 
 struct ObjString : Obj {
-    explicit ObjString(VMCore& vm) : Obj(vm, ObjType::STRING) {}    
+    /*
+        This variable is so that we can map any Obj to its ObjType enum. 
+        This is NOT the same as the other 'type' member variable which is 
+        RUNTIME data. This is compile-time data, and cannot be used to 
+        determine what kind of type an Object holds at runtime.
+    */
+    static constexpr ObjType STATIC_TYPE = ObjType::STRING; 
+
+    explicit ObjString(VMCore& vm) : Obj(vm, STATIC_TYPE) {}    
     ~ObjString() override;
     void Print() override;
     ObjString* ToString() override;
@@ -104,6 +112,8 @@ struct ObjString : Obj {
 // ObjFunction -----------------
 
 struct ObjFunction : Obj {
+    static constexpr ObjType STATIC_TYPE = ObjType::FUNCTION; 
+
     struct Arguments {
         static constexpr std::size_t MAX_ARITY{ UINT8_MAX };
 
@@ -119,7 +129,7 @@ struct ObjFunction : Obj {
     };
 
     explicit ObjFunction(VMCore& vm) 
-        : Obj(vm, ObjType::FUNCTION)
+        : Obj(vm, STATIC_TYPE)
         , chunk(vm)
         , defaults(vm)
     {}
@@ -142,7 +152,9 @@ struct ObjFunction : Obj {
 // ObjModule -----------------
 
 struct ObjModule : Obj {
-    explicit ObjModule(VMCore& vm) : Obj(vm, ObjType::MODULE), globals(vm) {}
+    static constexpr ObjType STATIC_TYPE = ObjType::MODULE; 
+
+    explicit ObjModule(VMCore& vm) : Obj(vm, STATIC_TYPE), globals(vm) {}
     void Print() override;
     void Blacken(GC& gc) override;
 
@@ -156,7 +168,9 @@ struct ObjModule : Obj {
 // ObjUpvalue -----------------
 
 struct ObjUpvalue : Obj {
-    explicit ObjUpvalue(VMCore& vm) : Obj(vm, ObjType::UPVALUE) {}
+    static constexpr ObjType STATIC_TYPE = ObjType::UPVALUE; 
+
+    explicit ObjUpvalue(VMCore& vm) : Obj(vm, STATIC_TYPE) {}
     void Print() override;
     void Blacken(GC& gc) override;
 
@@ -172,7 +186,9 @@ struct ObjUpvalue : Obj {
 // ObjClosure -----------------
 
 struct ObjClosure : Obj {
-    explicit ObjClosure(VMCore& vm) : Obj(vm, ObjType::CLOSURE) {}
+    static constexpr ObjType STATIC_TYPE = ObjType::CLOSURE; 
+
+    explicit ObjClosure(VMCore& vm) : Obj(vm, STATIC_TYPE) {}
     ~ObjClosure() override;
     void Print() override;
     ObjString* ToString() override;
@@ -193,7 +209,9 @@ struct ObjClosure : Obj {
 using NativeFn = Value(*)(VMCore& vm, Value* args, std::size_t argCount);
 
 struct ObjNative : Obj {
-    explicit ObjNative(VMCore& vm) : Obj(vm, ObjType::NATIVE) {}
+    static constexpr ObjType STATIC_TYPE = ObjType::NATIVE; 
+
+    explicit ObjNative(VMCore& vm) : Obj(vm, STATIC_TYPE) {}
     void Print() override;
     ObjString* ToString() override;
     void Blacken(GC& gc) override {};
@@ -218,7 +236,9 @@ struct ItemBuffer {
 
 
 struct ObjList : Obj {
-    explicit ObjList(VMCore& vm) : Obj(vm, ObjType::LIST) {}
+    static constexpr ObjType STATIC_TYPE = ObjType::LIST; 
+
+    explicit ObjList(VMCore& vm) : Obj(vm, STATIC_TYPE) {}
     ~ObjList() override;
     void Print() override;
     ObjString* ToString() override;
@@ -249,8 +269,10 @@ struct ObjList : Obj {
 // ObjDict -----------------
 
 struct ObjDict : Obj {
+    static constexpr ObjType STATIC_TYPE = ObjType::DICT; 
+
     explicit ObjDict(VMCore& vm) 
-        : Obj(vm, ObjType::DICT), entries(vm) 
+        : Obj(vm, STATIC_TYPE), entries(vm) 
     {}
 
     void Print() override;
@@ -273,8 +295,10 @@ struct ObjDict : Obj {
 // ObjThing -----------------
 
 struct ObjThing : Obj {
+    static constexpr ObjType STATIC_TYPE = ObjType::THING; 
+
     explicit ObjThing(VMCore& vm)
-        : Obj(vm, ObjType::THING), attributes(vm) 
+        : Obj(vm, STATIC_TYPE), attributes(vm) 
     {}
 
     void Print() override;
@@ -300,8 +324,10 @@ struct ObjThing : Obj {
 // ObjCategory -----------------
 
 struct ObjCategory : Obj {
+    static constexpr ObjType STATIC_TYPE = ObjType::CATEGORY; 
+
     explicit ObjCategory(VMCore& vm)
-        : Obj(vm, ObjType::CATEGORY), types(vm)
+        : Obj(vm, STATIC_TYPE), types(vm)
     {}
 
     void Print() override;

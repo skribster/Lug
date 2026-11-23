@@ -4,7 +4,6 @@
 #include <type_traits>
 
 #include "lug_vector.h"
-#include "lug_variant.hpp"
 
 namespace Lug {
 
@@ -18,6 +17,9 @@ enum class ValueType {
     TOMBSTONE
 };
 
+
+// Empty sentinels, mainly for type checking
+struct NaN {};
 
 struct VMCore;
 struct Obj;
@@ -34,6 +36,7 @@ public:
     Value() : bits(QNAN | TAG_NIL) {}
 
     bool operator==(const Value& other) const;
+    explicit operator bool() const { return !IsNil(); }
     
     Value(double number)    : bits(DoubleToBits(number)) {}
     Value(int number)       : bits(DoubleToBits(static_cast<double>(number))) {}
@@ -70,6 +73,28 @@ public:
     inline bool IsNil() const       { return bits == NIL_VAL; }
     inline bool IsObj() const       { return (bits & (QNAN | SIGN_BIT)) == (QNAN | SIGN_BIT); }
     inline bool IsTombstone() const { return bits == TOMBSTONE_VAL; }
+
+    template<typename T>
+    inline bool Is() const {
+        if constexpr (std::is_same_v<T, double>)            return IsNumber();
+        else if constexpr (std::is_same_v<T, int>)          return IsInteger();
+        else if constexpr (std::is_same_v<T, Lug::NaN>)     return IsNan();
+        else if constexpr (std::is_same_v<T, bool>)         return IsBool();
+        else if constexpr (std::is_same_v<T, Lug::Nil>)     return IsNil();
+        else if constexpr (std::is_same_v<T, Obj>)          return IsObj();
+        else if constexpr (std::is_base_of_v<Obj, T>)       return IsObj(T::STATIC_TYPE);
+        else static_assert(sizeof(T) == 0, "unsupported type for Value::Is<T>");
+    }
+
+    template<typename T>
+    inline auto As() const {
+        if constexpr (std::is_same_v<T, double>)            return AsNumber();
+        else if constexpr (std::is_same_v<T, int>)          return AsInteger();
+        else if constexpr (std::is_same_v<T, bool>)         return AsBool();
+        else if constexpr (std::is_same_v<T, Obj>)          return AsObj();
+        else if constexpr (std::is_base_of_v<Obj, T>)       return AsObj<T>();
+        else static_assert(sizeof(T) == 0, "unsupported type for Value::As<T>");
+    }
 
     // Defined in lug_object.h
     inline bool IsObj(ObjType type) const;
@@ -177,6 +202,28 @@ public:
     
     // Defined in lug_object.h
     inline bool IsObj(ObjType type) const;
+
+    template<typename T>
+    inline bool Is() const {
+        if constexpr (std::is_same_v<T, double>)            return IsNumber();
+        else if constexpr (std::is_same_v<T, int>)          return IsInteger();
+        else if constexpr (std::is_same_v<T, Lug::NaN>)     return IsNan();
+        else if constexpr (std::is_same_v<T, bool>)         return IsBool();
+        else if constexpr (std::is_same_v<T, Lug::Nil>)     return IsNil();
+        else if constexpr (std::is_same_v<T, Obj>)          return IsObj();
+        else if constexpr (std::is_base_of_v<Obj, T>)       return IsObj(T::STATIC_TYPE);
+        else static_assert(sizeof(T) == 0, "unsupported type for Value::Is<T>");
+    }
+
+    template<typename T>
+    inline auto As() const {
+        if constexpr (std::is_same_v<T, double>)            return AsNumber();
+        else if constexpr (std::is_same_v<T, int>)          return AsInteger();
+        else if constexpr (std::is_same_v<T, bool>)         return AsBool();
+        else if constexpr (std::is_same_v<T, Obj>)          return AsObj();
+        else if constexpr (std::is_base_of_v<Obj, T>)       return AsObj<T>();
+        else static_assert(sizeof(T) == 0, "unsupported type for Value::As<T>");
+    }
 
     // I like the convention of passing in the value to Print()
     // because it looks better..........

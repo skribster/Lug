@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstring>
+#include <initializer_list>
+
 #include "lug.hpp"
 
 #include "lug_common.h"
@@ -120,10 +122,11 @@ public:
 
     // Function methods -------------------------
 
-    inline void PushFrame(ObjClosure* closure, std::uint8_t argCount, std::uint8_t shared);
+    void PushFrame(ObjClosure* closure, std::uint8_t argCount, std::uint8_t shared);
     NO_INLINE void PushFrameSlow(ObjClosure* closure, std::uint8_t argCount, std::uint8_t shared);
     
-    bool CallValue(Value value, std::uint8_t argCount, std::uint8_t shared);
+    bool CallValue(Value value, std::uint8_t argCount, std::uint8_t shared = 0);
+    bool CallDunder(Value dunder, std::initializer_list<Value> args, std::uint8_t shared = 0);
     void Call(ObjClosure* closure, std::uint8_t argCount, std::uint8_t shared = 0);
     ObjUpvalue* CaptureUpvalue(Value* local);
     void CloseUpvalues(Value* last);
@@ -133,7 +136,8 @@ public:
     Variant ToVariant(const Value& value);
     Value ToValue(const Variant& variant, std::string_view name = "");
 
-    ObjThing* GetProtoOf(Value value) const;
+    ObjThing* GetProto(Value value) const;
+    ObjClosure* GetDunder(Value value, const char* name) const;
     Variant GetGlobal(std::string_view name);
     void SetGlobal(std::string_view name, const Variant& variant);
     

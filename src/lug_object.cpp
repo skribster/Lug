@@ -636,7 +636,7 @@ Value* ObjList::Get(int index) {
 
         Without this, b and a will have the same contents.
     */
-    if (items->refCount > 1 && items->data[clampedIndex].IsObj(ObjType::LIST)) {
+    if (items->refCount > 1 && items->data[clampedIndex].Is<ObjList>()) {
         MakeUnique();
     }
 
@@ -702,7 +702,7 @@ void ObjDict::Print() {
         const Entry& entry = entries[i];
 
         if (entry.key.Type() == ValueType::TOMBSTONE) continue;
-        if (entry.key.IsNil()) continue;
+        if (!entry.key) continue;
         
         Value::Print(entry.key);
         std::printf(" : ");
@@ -779,18 +779,18 @@ ObjString* ObjThing::ToString() {
 
     // If we find a __tostring__ dunder in our attributes,
     // we should call it.
-    if (stringDunder != nullptr && stringDunder->IsObj(ObjType::CLOSURE)) {
+    if (stringDunder != nullptr && stringDunder->Is<ObjClosure>()) {
         vm.stack.Push(*stringDunder);
         vm.stack.Push(this);
 
         // We will 'share' the thing.
-        vm.Call(stringDunder->AsObj<ObjClosure>(), 1, 0b1);
+        vm.Call(stringDunder->As<ObjClosure>(), 1, 0b1);
         Value result = vm.stack.Pop();
-        if (!result.IsObj(ObjType::STRING)) {
+        if (!result.Is<ObjString>()) {
             throw vm.RuntimeError("'__tostring__' must return a string, returned '%s' instead", result.StringType());
         }
 
-        return result.AsObj<ObjString>();
+        return result.As<ObjString>();
     }
 
     return ObjString::FromLiteral(vm, "<thing>");
@@ -813,7 +813,7 @@ Obj* ObjThing::Copy() {
         vm.stack.Push(name);
         vm.stack.Push(value);
 
-        copy->Set(name.AsObj<ObjString>(), value);
+        copy->Set(name.As<ObjString>(), value);
         
         vm.stack.Pop();
         vm.stack.Pop();
@@ -831,11 +831,11 @@ const Value* ObjThing::Get(ObjString* attribute) const {
     }
 
     Value* protoValue = attributes.Get("__proto__");
-    if (protoValue == nullptr || !protoValue->IsObj(ObjType::THING)) {
+    if (protoValue == nullptr || !protoValue->Is<ObjThing>()) {
         return nullptr;
     }
 
-    ObjThing* proto = protoValue->AsObj<ObjThing>();
+    ObjThing* proto = protoValue->As<ObjThing>();
     return proto->Get(attribute);
 }
 

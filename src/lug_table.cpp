@@ -149,8 +149,8 @@ ObjString* Table::FindString(const char* chars, std::size_t length, std::uint32_
 
         // Stop when we find a truly empty entry
         if (entry->key.IsNil()) return nullptr;
-        if (entry->key.IsObj(ObjType::STRING)) {
-            ObjString* string = entry->key.AsObj<ObjString>();
+        if (entry->key.Is<ObjString>()) {
+            ObjString* string = entry->key.As<ObjString>();
             if (
                 string->length == length 
                 && string->hash == hash

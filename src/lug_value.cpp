@@ -179,5 +179,4 @@ Value Value::Copy() {
     return *this;
 }
 
-
-}
+} // Lug

@@ -12,7 +12,7 @@ static Value Upper(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);
     CheckType(vm, args[0], ObjType::STRING);
 
-    ObjString* string = args[0].AsObj<ObjString>();
+    ObjString* string = args[0].As<ObjString>();
     char* upperString = Memory::Allocate<char>(vm, string->length + 1);
 
     for (std::size_t i = 0; i < string->length; i++) {
@@ -29,7 +29,7 @@ static Value Lower(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);
     CheckType(vm, args[0], ObjType::STRING);
 
-    ObjString* string = args[0].AsObj<ObjString>();
+    ObjString* string = args[0].As<ObjString>();
     char* upperString = Memory::Allocate<char>(vm, string->length + 1);
 
     for (std::size_t i = 0; i < string->length; i++) {
@@ -46,7 +46,7 @@ static Value Length(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);
     CheckType(vm, args[0], ObjType::STRING);
 
-    ObjString* string = args[0].AsObj<ObjString>();
+    ObjString* string = args[0].As<ObjString>();
 
     return static_cast<int>(string->length);
 }
@@ -56,7 +56,7 @@ static Value IsAlpha(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);
     CheckType(vm, args[0], ObjType::STRING);
 
-    ObjString* string = args[0].AsObj<ObjString>();
+    ObjString* string = args[0].As<ObjString>();
 
     for (int i = 0; i < string->length; i++) {
         char c = string->characters[i];
@@ -73,7 +73,7 @@ static Value IsDigit(VMCore& vm, Value* args, std::size_t argCount) {
     CheckArgc(vm, argCount, 1);
     CheckType(vm, args[0], ObjType::STRING);
 
-    ObjString* string = args[0].AsObj<ObjString>();
+    ObjString* string = args[0].As<ObjString>();
 
     for (int i = 0; i < string->length; i++) {
         char c = string->characters[i];
