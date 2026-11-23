@@ -38,7 +38,6 @@ enum class TokenType {
     IDENTIFIER,
     STRING,
     NUMBER,
-    ERROR,
 
     // Keywords
     AND,
@@ -93,10 +92,11 @@ struct Token {
 
 class Lexer {
 public:
-    inline void Reset(const char* src) {
+    inline void Reset(const char* src, std::filesystem::path scrPath) {
         source = src;
         start = src;
         current = src;
+        scriptPath = scrPath;
         
         lineStart = src;
         line = 1;
@@ -107,12 +107,15 @@ public:
     
     
 private:
-    Token ErrorToken(const char* message);
     Token MakeToken(TokenType type);
+    [[noreturn]] void LexError(const char* message);
     
     Token Identifier();
     Token Number();
     Token String(char delimiter);
+
+    void SingleLineComment();
+    void MultiLineComment();
     
     bool IsAtEnd();
     void SkipWhitespace();
@@ -127,6 +130,7 @@ private:
     
     std::size_t line{ 1 };
     const char* lineStart{ nullptr };
+    std::filesystem::path scriptPath;
 };
 
 

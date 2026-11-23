@@ -108,20 +108,20 @@ Token Lexer::MakeToken(TokenType type) {
     return token;
 }
 
-/**
- * Produces an error token that holds an error
- * message.
- */
-Token Lexer::ErrorToken(const char* message) {
-    Token token;
-    
-    token.type = TokenType::ERROR;
-    token.length = static_cast<std::size_t>(current - start);
-    token.start = message;
-    token.line = line;
-    token.column = static_cast<std::size_t>(start - lineStart) + 1;
 
-    return token;
+void Lexer::LexError(const char* message) {
+    Lug::Error error;
+
+    error.type = Lug::InterpretResult::COMPILE_ERROR;
+    error.message = message;
+    error.sourceLine = LineContents(line);
+
+    error.location.line = line;
+    error.location.tokenLength = static_cast<std::size_t>(current - start);
+    error.location.column = static_cast<std::size_t>(start - lineStart) + 1;
+    error.location.file = scriptPath.filename().string();
+
+    throw error;
 }
 
 
@@ -168,16 +168,55 @@ Token Lexer::Number() {
 
 Token Lexer::String(char delimiter) {
     while (Peek() != delimiter && !IsAtEnd()) {
-        if (Peek() == '\n') return ErrorToken("unterminated string");
+        if (Peek() == '\n') LexError("unterminated string");
         if (Peek() == '\\') Advance(); // Skip over any escape sequences.
         Advance();
     }
 
-    if (IsAtEnd()) return ErrorToken("unterminated string");
+    if (IsAtEnd()) LexError("unterminated string");
 
     // The closing quote.
     Advance();
     return MakeToken(TokenType::STRING);
+}
+
+
+
+void Lexer::SingleLineComment() {
+    while (Peek() != '\n' && !IsAtEnd()) Advance();
+}
+
+
+void Lexer::MultiLineComment() {
+    Advance();
+    Advance();
+
+    int commentDepth = 1;
+    while (commentDepth > 0) {
+        if (IsAtEnd()) LexError("unterminated multi-line comment");
+
+        else if (Peek() == '/' && PeekNext() == '*') {
+            commentDepth++;
+            Advance(); 
+            Advance();
+        }
+
+        else if (Peek() == '*' && PeekNext() == '/') {
+            commentDepth--;
+            Advance();
+            Advance();
+        }
+
+        else {
+            if (Peek() == '\n') {
+                line++;
+                Advance();
+                lineStart = current;
+            } else {
+                Advance();
+            }
+        }
+    }
 }
 
 
@@ -212,16 +251,16 @@ void Lexer::SkipWhitespace() {
 
             case '/':
                 if (PeekNext() == '/') {
-                    // A comment goes until the end of the line.
-                    while (Peek() != '\n' && !IsAtEnd()) Advance();
+                    SingleLineComment();
+                } else if (PeekNext() == '*') {
+                    MultiLineComment();
                 } else {
                     return;
                 }
                 
                 break;
 
-            default:
-                return;
+            default: return;
         }
     }
 }
@@ -319,7 +358,7 @@ Token Lexer::ScanToken() {
 
         case '!':
             if (Match('=')) return MakeToken(TokenType::BANG_EQUAL);
-            break; // breaks to ErrorToken
+            break; // breaks to LexError
             
         case '<':
             if (Match('=')) {
@@ -346,7 +385,7 @@ Token Lexer::ScanToken() {
             return String('\'');
     }
 
-    return ErrorToken("unexpected character");
+    LexError("unexpected character");
 }
 
 

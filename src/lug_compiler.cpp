@@ -1175,7 +1175,6 @@ const ParseRule Compiler::rules[] = {
     { &Compiler::VariableExpr,      nullptr,                    Precedence::NONE },             // IDENTIFIER
     { &Compiler::StringExpr,        nullptr,                    Precedence::NONE },             // STRING
     { &Compiler::NumberExpr,        nullptr,                    Precedence::NONE },             // NUMBER
-    { nullptr,                      nullptr,                    Precedence::NONE },             // ERROR
 
     // Keywords         
     { nullptr,                      &Compiler::AndExpr,         Precedence::AND },              // AND

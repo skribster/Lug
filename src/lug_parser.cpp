@@ -36,7 +36,7 @@ static std::string FormatString(const char* format, va_list args) {
 void Parser::Reset(const char* source, std::filesystem::path scrPath) {
     scriptPath = scrPath;
 
-    lexer.Reset(source);
+    lexer.Reset(source, scrPath);
     Advance();
 }
 
@@ -45,10 +45,6 @@ void Parser::Reset(const char* source, std::filesystem::path scrPath) {
 void Parser::Advance() {
     previous = current;
     current = lexer.ScanToken();
-
-    if (current.type == TokenType::ERROR) {
-        ErrorAtCurrent(current.start);
-    }
 }
 
 
