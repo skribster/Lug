@@ -1,0 +1,51 @@
+box NumWrapper <- thing {
+    data <- 0
+}
+
+NumWrapper.new <- function(data)
+    return thing of NumWrapper {
+        data <- data
+    }
+end
+
+
+NumWrapper.__equal__ <- function(shared self, shared other)
+    return self.data = other.data
+end
+
+
+NumWrapper.__greater__ <- function(shared self, shared other)
+    return self.data > other.data
+end
+
+
+NumWrapper.__greater_equal__ <- function(shared self, shared other)
+    return self.data >= other.data
+end
+
+
+NumWrapper.__less__ <- function(shared self, shared other)
+    return self.data < other.data
+end
+
+
+NumWrapper.__less_equal__ <- function(shared self, shared other)
+    return self.data <= other.data
+end
+
+
+box a <- NumWrapper.new(2)
+box b <- NumWrapper.new(3)
+
+print(a = b) // expect: false
+print(a > b) // expect: false
+print(a < b) // expect: true
+print(a >= b) // expect: false
+print(a <= b) // expect: true
+
+box c <- NumWrapper.new(2)
+print(a = c) // expect: true
+print(a > c) // expect: false
+print(a < c) // expect: false
+print(a >= c) // expect: true
+print(a <= c) // expect: true

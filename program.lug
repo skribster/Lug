@@ -1,33 +1,51 @@
-box payload <- pcall(function()
-    error("Payload") 
-end)
+box NumWrapper <- thing {
+    data <- 0
+}
 
-print(payload.success) // expect: false
-print(payload.result) // expect: Payload
-
-
-// Test with other objects, you can pass anything inside 'error'
-box callWithNumber <- pcall(function()
-    error(5) 
-end)
-
-print(callWithNumber.success) // expect: false
-print(callWithNumber.result) // expect: 5
-
-// Test with non-anonymous function, multiple args
-box add <- function(a, b)
-    return a + b
+NumWrapper.new <- function(data)
+    return thing of NumWrapper {
+        data <- data
+    }
 end
 
 
-box try1 <- pcall(add, 1, "bad")
-print(try1.success) // expect: false
-print(try1.result) // expect: can't add operands of type 'number' and 'string' together
+NumWrapper.__equal__ <- function(shared self, shared other)
+    return self.data = other.data
+end
 
-box try2 <- pcall(add, 1, 2)
-print(try2.success) // expect: 
-print(try2.result) // expect: 3
 
-box try3 <- pcall(add, 4, 3, 2, 1)
-print(try3.success) // expect: false
-print(try3.result) // 
+NumWrapper.__greater__ <- function(shared self, shared other)
+    return self.data > other.data
+end
+
+
+NumWrapper.__greater_equal__ <- function(shared self, shared other)
+    return self.data >= other.data
+end
+
+
+NumWrapper.__less__ <- function(shared self, shared other)
+    return self.data < other.data
+end
+
+
+NumWrapper.__less_equal__ <- function(shared self, shared other)
+    return self.data <= other.data
+end
+
+
+box a <- NumWrapper.new(2)
+box b <- NumWrapper.new(3)
+
+print(a = b) // expect: false
+print(a > b) // expect: false
+print(a < b) // expect: true
+print(a >= b) // expect: false
+print(a <= b) // expect: true
+
+box c <- NumWrapper.new(2)
+print(a = c) // expect: true
+print(a > c) // expect: false
+print(a < c) // expect: false
+print(a >= c) // expect: true
+print(a <= c) // expect: true

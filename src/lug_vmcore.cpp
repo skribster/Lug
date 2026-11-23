@@ -864,19 +864,21 @@ void VMCore::Run() {
 
     #define COMPARISON_OP(op)                                                           \
     do {                                                                                \
-        Value b = stack.Pop();                                                          \
-        Value a = stack.Pop();                                                          \
+        Value b = stack.Peek(0);                                                        \
+        Value a = stack.Peek(1);                                                        \
                                                                                         \
         if (b.IsNumber() && a.IsNumber()) {                                             \
+            stack.Pop();                                                                \
+            stack.Pop();                                                                \
             stack.Push(a.AsNumber() op b.AsNumber());                                   \
+            DISPATCH();                                                                 \
         }                                                                               \
                                                                                         \
         else if (b.Is<ObjString>() && a.Is<ObjString>()) {                              \
+            stack.Pop();                                                                \
+            stack.Pop();                                                                \
             stack.Push(*a.As<ObjString>() op *b.As<ObjString>());                       \
-        }                                                                               \
-                                                                                        \
-        else {                                                                          \
-            throw RuntimeError("operands must be two numbers or two strings");          \
+            DISPATCH();                                                                 \
         }                                                                               \
     } while (false)
 
@@ -1071,30 +1073,45 @@ void VMCore::Run() {
         }
 
         CASE(EQUAL): {
+            BINARY_DUNDER("__equal__");
+
             Value b = stack.Pop();
             Value a = stack.Pop();
             stack.Push(a == b);
+
             DISPATCH();
         }
 
         CASE(GREATER): {
             COMPARISON_OP(>);
-            DISPATCH();
+            
+            BINARY_DUNDER("__greater__");
+            
+            throw RuntimeError("operands must be two numbers or two strings"); 
         }
         
         CASE(GREATER_EQUAL): {
             COMPARISON_OP(>=);
-            DISPATCH();
+
+            BINARY_DUNDER("__greater_equal__");
+
+            throw RuntimeError("operands must be two numbers or two strings"); 
         }
         
         CASE(LESS): {
             COMPARISON_OP(<);
-            DISPATCH();
+
+            BINARY_DUNDER("__less__");
+
+            throw RuntimeError("operands must be two numbers or two strings"); 
         }
         
         CASE(LESS_EQUAL): {
             COMPARISON_OP(<=);
-            DISPATCH();
+
+            BINARY_DUNDER("__less_equal__");
+
+            throw RuntimeError("operands must be two numbers or two strings"); 
         }
 
         CASE(JUMP): {
