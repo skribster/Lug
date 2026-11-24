@@ -38,10 +38,6 @@ static void Repl(Lug::VM& vm) {
         if (line.empty()) break;
 
         Lug::InterpretResult result = vm.Interpret(line, "repl");
-        if (result != Lug::InterpretResult::OK) {
-            const Lug::Error& error = vm.LastError();
-            std::cerr << error.Format() << '\n';
-        }
     }
 }
 

@@ -30,6 +30,24 @@ enum class ObjType {
 };
 
 
+/**
+ * An 'Obj' is just Value data that lives on the heap. When a
+ * Value stores a primitive, like a number, bool, or nil, we can
+ * store that data directly inside the struct. However, for more
+ * complex structures like lists, dicts, and things, those can
+ * vary wildly in size, so we can't directly store them inside a
+ * tagged union. Instead, what we do is store a pointer inside 
+ * Value to a heap-allocated structure called an Object.
+ * 
+ * Visualizing the Value tagged union:
+ * 
+ * Value (can hold...)
+ * | number
+ * | bool
+ * | nil
+ * | obj* ----------------> [ points to some Obj* in memory, ]
+ *                          [ heap allocated first           ]
+ */
 struct Obj {
     Obj(VMCore& vm, ObjType type) : vm(vm), type(type) {}
     virtual ~Obj() = default;

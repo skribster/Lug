@@ -53,6 +53,15 @@ struct AttributeCache {
     const Value* value{ nullptr };
 };
 
+/**
+ * A chunk is just a container to store compiled bytecode. A
+ * Lug::Compiler writes to a chunk during its compilation phase.
+ * The VM can then read that chunk and execute its bytecode during
+ * runtime.
+ * 
+ * Bytecode is stored in the Chunk's bytecode array, represented by
+ * Vector<std::uint8_t> bytecode.
+ */
 struct Chunk {
 public: 
     using ConstantIndex = std::uint16_t;

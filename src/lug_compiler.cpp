@@ -1596,6 +1596,8 @@ void Compiler::TernaryExpr(bool canAssign) {
  * Emits a literal (true, false, nil)
  */
 void Compiler::LiteralExpr(bool canAssign) {
+    // true | false | nil
+
     TokenType literalType = parser.previous.type;
 
     switch (literalType) {
@@ -1612,6 +1614,8 @@ void Compiler::LiteralExpr(bool canAssign) {
  * Emits a number into the bytecode stream.
  */
 void Compiler::NumberExpr(bool canAssign) {
+    // 0...9
+
     double value = std::strtod(parser.previous.start, nullptr);
     EmitConstant(value);
 }
@@ -1621,10 +1625,18 @@ void Compiler::NumberExpr(bool canAssign) {
  * Emits a string into the bytecode stream.
  */
 void Compiler::StringExpr(bool canAssign) {
+    // "..."
+
     Vector<char> buffer(vm);
     Token& string = parser.previous;
     std::size_t stringLength = string.length - 2; // to account for surrounding quotes
 
+    /*
+        The string token represents the raw characters
+        from the string literal. We'll loop over the 
+        characters so we can convert any escape sequences
+        to their actual ASCII values.
+    */
     for (int i = 1; i <= stringLength; i++) {
         char character = string.start[i];
         if (character != '\\') {
@@ -1662,6 +1674,8 @@ void Compiler::StringExpr(bool canAssign) {
  * Handles a function literal/anonymous function.
  */
 void Compiler::FunctionExpr(bool canAssign) {
+    // 'function' '(' parameters? ')' block 'end'
+
     FunctionUnit unit{ vm, *this, parser };
     PushUnit(&unit, FunctionType::FUNCTION);
 
@@ -1692,6 +1706,9 @@ void Compiler::FunctionExpr(bool canAssign) {
 
 
 void Compiler::ParameterList(ObjFunction* function) {
+    // parameter ( ',' parameter )*
+    // where parameter ::= 'shared'? IDENTIFIER ('<-' expression)?
+
     bool hasPrebody = false;
     ObjFunction::Arguments& parameters = function->parameters;
 

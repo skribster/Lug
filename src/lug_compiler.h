@@ -132,6 +132,11 @@ struct Variable {
 };
 
 
+/**
+ * This class is responsible for turning your source code 
+ * into an intermediate representation (bytecode) for the VM
+ * to execute during runtime.
+ */
 class Compiler {
 public:
     explicit Compiler(VMCore& vm) : vm(vm) {}

@@ -20,6 +20,10 @@ struct Entry {
     inline bool IsEmpty() const { return key.IsTombstone() || key.IsNil(); }    
 };
 
+/**
+ * This is a helper class to allow for looping through a
+ * Lug::Table with a for range loop.
+ */
 class TableIterator {
 public:
     TableIterator(Entry* current, Entry* end)
@@ -65,6 +69,10 @@ private:
 };
 
 
+/**
+ * This is a custom hashmap implementation that uses
+ * Lug::Value's as its keys and values. 
+ */
 struct Table {
 public:
     using Iterator = TableIterator;

@@ -89,7 +89,12 @@ struct Token {
     static Token Synthetic(const char* lexeme);
 };
 
-
+/**
+ * This class helps convert pure source code (a string) into a sequence
+ * of meaningful tokens. Think of it as we're turning just a pile of
+ * meaningless characters, and grouping those characters into meaningful 
+ * units, like keywords, identifiers, literals, and operators.
+ */
 class Lexer {
 public:
     inline void Reset(const char* src, std::filesystem::path scrPath) {
@@ -104,7 +109,6 @@ public:
 
     Token ScanToken();
     std::string LineContents(std::size_t lineNumber) const;
-    
     
 private:
     Token MakeToken(TokenType type);

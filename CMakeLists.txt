@@ -1,11 +1,25 @@
 cmake_minimum_required(VERSION 3.23)
-project(lug LANGUAGES CXX) 
+project(lug 
+    LANGUAGES CXX 
+    VERSION 1.0.0
+) 
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(BUILD_TESTING "Build Testing Suite" OFF)
+option(BUILD_SHARED_LIBS "Build as Shared Library" OFF)
+
 #-------- lug IMPLEMENTATION --------
-add_library(lug_core)
+if (BUILD_SHARED_LIBS)
+add_library(lug_core SHARED)
+else()
+add_library(lug_core STATIC)
+endif()
+
+target_compile_features(lug_core PUBLIC cxx_std_17)
+
+
 target_sources(lug_core
     PRIVATE
         src/lug_auxlib.cpp
@@ -36,8 +50,13 @@ target_sources(lug_core
         BASE_DIRS include
         FILES 
             include/lug.hpp
+            include/lug_variant.hpp
+            include/lug_version.hpp
+            include/lug_vm.hpp
 )
 
+# Let lug_core include any private headers in src :)
+target_include_directories(lug_core PRIVATE src)
 
 #-------- lug MAIN EXE --------
 add_executable(lug)
@@ -46,6 +65,7 @@ target_sources(lug
         main.cpp    
 )
 
+# Link the lug_core library with lug
 target_link_libraries(lug PRIVATE lug_core)
 
 #-------- TESTS --------
@@ -53,3 +73,92 @@ include(CTest)
 if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
+
+#-------- INSTALLATION --------
+install(
+    TARGETS lug_core
+    EXPORT lug_targets
+
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+
+    FILE_SET HEADERS
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+    TARGETS lug
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+    
+include(GNUInstallDirs)
+install(
+    EXPORT lug_targets
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/lug
+    NAMESPACE lug::
+)
+        
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/lug-config-version.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+install(
+    FILES
+        cmake/lug-config.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/lug-config-version.cmake
+    DESTINATION 
+        ${CMAKE_INSTALL_LIBDIR}/cmake/lug
+)
+
+#-------- PACKING --------
+set(CPACK_PACKAGE_NAME lug)
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_VENDOR "skribster")
+
+
+# literally 90% of this is just to make the outputted
+# name of the .zip binary look good.... it should output
+# something like:
+# lug-<version>-<system_name>-<system_processor>-<compiler_tag>
+# like:
+# lug-1.0.0-windows-x64-clang
+string(TOLOWER "${CMAKE_SYSTEM_NAME}" PKG_OS)
+if(PKG_OS STREQUAL "darwin")
+    set(PKG_OS "macos")
+endif()
+
+string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" PKG_ARCH)
+if(PKG_ARCH MATCHES "^(x86_64|amd64)$")
+    set(PKG_ARCH "x64")
+elseif(PKG_ARCH MATCHES "^(i386|i686|x86)$")
+    set(PKG_ARCH "x86")
+elseif(PKG_ARCH MATCHES "^(aarch64|arm64)$")
+    set(PKG_ARCH "arm64")
+endif()
+
+if(MSVC)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        set(PKG_COMPILER "clang-cl")
+    else()
+        set(PKG_COMPILER "msvc")
+    endif()
+elseif(MINGW)
+    set(PKG_COMPILER "mingw")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(PKG_COMPILER "clang")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(PKG_COMPILER "gcc")
+else()
+    string(TOLOWER "${CMAKE_CXX_COMPILER_ID}" PKG_COMPILER)
+endif()
+
+set(CPACK_GENERATOR "ZIP")
+set(CPACK_PACKAGE_FILE_NAME 
+    "${PROJECT_NAME}-${PROJECT_VERSION}-${PKG_OS}-${PKG_ARCH}-${PKG_COMPILER}"
+)
+
+include(CPack)

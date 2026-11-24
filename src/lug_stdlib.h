@@ -51,6 +51,19 @@ void DefineLib(VMCore& vm, ObjThing* library, const NativeEntry (&entries)[N]) {
 
 // Library open functions -------------------------
 
+/*
+    All standard libraries will have a function defined here
+    that gets implemented in their respective .cpp implementation. 
+    (e.g. OpenBase is defined in lug_baselib.cpp.)
+    
+    All of these functions eventually gets called in Lug::VM 
+    where it loads a certain library by using a function
+    from here.
+
+    For example, if I wanted to load the math library in VM,
+    I'd call OpenMath(vm).
+*/
+
 extern void OpenBase(VMCore& vm);
 extern void OpenMath(VMCore& vm);
 extern void OpenString(VMCore& vm);

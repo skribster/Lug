@@ -8,7 +8,7 @@
 namespace Lug {
 
 GC::~GC() {
-    
+    FreeObjects();
 }
 
 

@@ -309,6 +309,10 @@ bool Lexer::Match(char expected) {
 
 
 // Lexer public methods -----------------------------
+
+/**
+ * Scans and returns the next token in the source code. 
+ */
 Token Lexer::ScanToken() {
     LUG_ASSERT(start != nullptr && current != nullptr, "lexer not initialized with source code");
 
@@ -389,6 +393,11 @@ Token Lexer::ScanToken() {
 }
 
 
+/**
+ * Returns back the contents of a specific line in the source code
+ * given its line number. This is mainly used for error messages to
+ * display the user with the necessary information to fix a problem.
+ */
 std::string Lexer::LineContents(std::size_t lineNumber) const {
     std::istringstream stream(source);
     std::string lineContents;

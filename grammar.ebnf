@@ -1,3 +1,78 @@
+/*
+    A language needs to know which expressions are considered 
+    syntactically 'correct', meaning they make sense. 
+    
+    A sentence such as "The boy kicked the ball" is syntactically correct. 
+    A sentence such as "Kicked boy the ball the" is not. 
+    A statement such as "box a <- 5" is syntactically correct.
+    A statement such as "5 box a <-" is not.
+    
+    How do we set out concrete rules for our grammar such that it can
+    recognize whether any statement is valid, when there's an infinite 
+    number of statements that can exist? We'll use a notation called
+    EBNF notation, which is how this file is written.
+    
+    Here is a simple explanation of how to read EBNF notation without diving
+    into any of the formal theory.
+
+    EBNF is written kind of like a list of 'rules', where the left side
+    is the rule name, while the right side is kind of like an expanded
+    version of that rule.
+
+    Let's start with something simple. If we come across a 'primary' rule, 
+    that means we can expand the 'primary' rule to anything that 'primary' 
+    equals. Recall that...
+    primary         ::= 'null' 
+                      | BOOLEAN
+                      | NUMBER
+                      | STRING
+                      | IDENTIFIER
+                      | '(' expression ')'
+                      | function
+                      | list
+                      | dictionary
+                      | thing
+    (You can think of ::= as meaning 'equals'. The | means that 'primary'
+    can ALSO be expanded as that.)
+
+    For example, if we come across this (hypothetical) rule:
+
+    primary_list    ::= primary ( ',' primary )*
+    
+    This rule is supposed to represent a comma separated list of *primary*
+    expressions. (e.g. 5, false, "hi", true, "string") 
+    How about we expand the first appearance of 'primary' to the second rule, 
+    a boolean?
+
+    primary_list    ::= BOOLEAN ( ',' primary )* 
+
+    We can expand that BOOLEAN further. Let's go check the BOOLEAN rule.
+    BOOLEAN             ::= 'true' | 'false'
+
+    You can think of '|' meaning 'or'. BOOLEAN equals either 'true' or 'false'. 
+    Let's pick false.
+
+    This becomes:
+    primary_list    ::= 'false' ( ',' primary )*
+
+    We can't expand that left side any further. You can think of anything wrapped
+    in single quotes in the file as actual text in the program. It's not a rule.
+
+    But we can expand that right side further. The * on the right side that 
+    you can repeat anything in the parentheses more than once. For example, we can
+    repeat the right side three times.
+    primary_list    ::= 'false' ',' primary ',' primary ',' primary 
+
+    Then we can expand each primary.
+    primary_list    ::= 'false' ',' NUMBER ',' list ',' IDENTIFIER
+     
+    This becomes:
+    primary_list    ::= 'false' ',' 3.28 ',' [1, 2, 3] ',' hello
+
+    And now we can't expand anymore.
+*/
+
+
 /* Statements */
 statement           ::= box
                       | print
@@ -28,7 +103,7 @@ equality            ::= comparison ( ('!=' | '=') comparison )*
 comparison          ::= term ( ('>' | '>=' | '<' | '<=') term )*
 term                ::= factor ( ('-' | '+') factor )*
 factor              ::= unary ( ('*' | '/') unary )*
-unary               ::= ('share' | 'not' | '-') unary | primary
+unary               ::= ( ('share' | 'not' | '-') unary ) | primary
 /*                               indexing list/dict    getting field    calling a function */
 postfix             ::= primary ( "[" expression "]" | "." IDENTIFIER | "(" arguments? ")" )*
 primary             ::= 'null' 
@@ -56,3 +131,11 @@ expression_list     ::= expression (',' expression)*
 identifier_list     ::= IDENTIFIER (',' IDENTIFIER)*
 keyvalue_list       ::= keyvalue_pair (',' keyvalue_pair)*
 keyvalue_pair       ::= (primary '<-' expression) | ('[' expression ']' '<-' expression)
+
+NUMBER              ::= DIGIT+ ( '.' DIGIT+ )? ;
+STRING              ::= '"' ALPHA* '"'      /* double quoted string */
+STRING              ::= "'" ALPHA* "'"      /* single quoted string */
+IDENTIFIER          ::= ALPHA ( ALPHA | DIGIT )* 
+ALPHA               ::= 'a' ... 'z' | 'A' ... 'Z' | '_'
+DIGIT               ::= '0' ... '9'
+BOOLEAN             ::= 'true' | 'false'

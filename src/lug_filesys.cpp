@@ -5,6 +5,10 @@
 
 namespace fs = std::filesystem;
 
+/**
+ * This namespace gives utility functions for working with 
+ * a user's filesystem, such as for reading files.
+ */
 namespace Lug::Filesystem {
 
 std::optional<fs::path> ResolveModulePath(const fs::path& importerPath, const fs::path& requestedPath) {

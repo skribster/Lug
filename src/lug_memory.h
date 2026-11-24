@@ -11,16 +11,6 @@ namespace Lug::Memory {
 
 inline constexpr double GROW_CAPACITY_FACTOR = 2.0;
 
-/**
- * The 'god' function of reallocating memory on the heap.
- * This function is crucial to the GC as it also regulates 
- * garbage collection for the VM.
- * 
- * if oldSize == 0 and newSize != 0, allocate a new block
- * if oldSize != 0 and newSize == 0, free the allocation
- * if oldSize != 0 and newSize < oldSize, shrink allocation
- * if oldSize != 0 and newSize > oldSize, grow allocation
- */
 void* Reallocate(VMCore& vm, void* pointer, std::size_t oldSize, std::size_t newSize);
 
 /**
@@ -54,6 +44,9 @@ template<typename T>
 }
 
 
+/**
+ * Frees a given pointer, also calling its destructor.
+ */
 template<typename T>
 void Free(VMCore& vm, T* pointer) {
     pointer->~T();
