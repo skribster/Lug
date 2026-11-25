@@ -67,7 +67,7 @@ body {
 
 .navbar {
     width: 100%;
-    position: sticky;
+    position: relative;
     background-color: var(--primary-color);
     top: 0;
     z-index: 9999;
@@ -78,6 +78,7 @@ body {
         max-width: 1024px;
         margin: 0 auto;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: space-between;
         padding: 1rem 2rem;
@@ -90,7 +91,9 @@ body {
     ul {
         list-style: none;
         display: flex;
-        gap: 3rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 0rem;
     }
 
     ul li a {
@@ -98,6 +101,19 @@ body {
         text-decoration: none;
         color: inherit;
         white-space: nowrap;
+    }
+
+    @media (min-width: 768px) {
+        position: sticky;
+
+        nav {
+            flex-direction: row;
+        }
+
+        ul {
+            flex-direction: row;
+            gap: 3rem;
+        }
     }
 }
 
@@ -109,6 +125,9 @@ body {
     font-family: 'JetBrains Mono';
     line-height: 1.2;
     text-align: left;
+
+    overflow-x: scroll;
+    max-width: 100%;
 
     .kw  { color: #9a4f1e; font-weight: 700; }   /* box, thing, function, end, return */
     .op  { color: #a3a12a; font-weight: 700; }   /* <- */
