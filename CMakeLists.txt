@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(BUILD_TESTING "Build Testing Suite" OFF)
 option(BUILD_SHARED_LIBS "Build as Shared Library" OFF)
+option(BUILD_WEBSITE "Build the website, such as C++ dependent code like the playground" OFF)
 
 #-------- lug IMPLEMENTATION --------
 if (BUILD_SHARED_LIBS)
@@ -67,6 +68,37 @@ target_sources(lug
 
 # Link the lug_core library with lug
 target_link_libraries(lug PRIVATE lug_core)
+
+#-------- BROWSER PLAYGROUND --------
+if(BUILD_WEBSITE)
+    if(NOT EMSCRIPTEN)
+        message(FATAL_ERROR "BUILD_WEBSITE requires the Emscripten toolchain")
+    endif()
+
+    add_executable(lug_website)
+    target_sources(lug_website
+        PRIVATE
+            docs/wasm/website.cpp
+    )
+
+    target_link_libraries(lug_website PRIVATE lug_core)
+    target_compile_options(lug_core PRIVATE -fexceptions)
+    target_compile_options(lug_website PRIVATE -fexceptions)
+    target_link_options(lug_website PRIVATE
+        -fexceptions
+        --bind
+        -sMODULARIZE=1
+        -sEXPORT_ES6=1
+        -sEXPORT_NAME=createLugModule
+        -sENVIRONMENT=web
+        -sALLOW_MEMORY_GROWTH=1
+    )
+
+    set_target_properties(lug_website PROPERTIES
+        OUTPUT_NAME "lug-website"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/docs"
+    )
+endif()
 
 #-------- TESTS --------
 include(CTest)

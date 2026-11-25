@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <link rel="stylesheet" href="index.css">
-    
+
     <title>Lug</title>
 </head>
 <body>
@@ -15,7 +15,8 @@
             <ul>
                 <li><a href="#about">About</a></li>
                 <li><a href="#why">Why Lug</a></li>
-                <li><a href="#why">Releases</a></li>
+                <li><a href="#playground">Playground</a></li>
+                <li><a href="https://github.com/skribster/Lug/releases" target="_blank" rel="noopener noreferrer">Releases</a></li>
             </ul>
         </nav>
     </header>
@@ -30,17 +31,15 @@
                     A simple, embeddable, easy-to-learn language that leans heavily 
                     into the 'box' metaphor.
                 </p>
-                <a id="releases-button" href="#releases">Releases</a>
+                <a id="releases-button" a href="https://github.com/skribster/Lug/releases" target="_blank" rel="noopener noreferrer"> Releases</a>
             </div>
         </section>
 
         <section id="about">
             <div class="about-info">
                 <h1>About</h1>
-                <strong>
-                    Take Lua's simple syntax and mix it with Python's intuitiveness.
-                </strong>
                 <p>
+                    <strong>Take Lua's simple syntax and mix it with Python's intuitiveness.</strong>
                     Lug is based on the 'box' metaphor commonly used to teach beginner 
                     programming concepts, with the language's semantics aiming to be 
                     predictable and consistent to newcomers.
@@ -114,10 +113,23 @@ buddy:<span class="fn">speak</span>()</code></pre></code></pre>
             </ul>
         </section>
 
-        <!-- <section id="releases">
-            <h1>Releases</h1>
+        <section id="playground" class="playground">
+            <h1>Playground</h1>
+            <div class="playground-editor">
+                <div class="playground-"></div>
+                <label for="playground-input">Source code</label>
+                <textarea id="playground-input" spellcheck="false">print("Hello, world!")</textarea>
+                <button id="playground-run" type="button">Run</button>
+                <label for="playground-output">Output</label>
+                <pre id="playground-output">...</pre>
+            </div>
+        </section>
 
-        </section> -->
+        <footer>
+            made with love by <a href="https://github.com/skribster" rel="noopener noreferrer" target="_blank">@skribster</a> :-)
+        </footer>
     </main>
+    <!-- the code for the playground is here -->
+    <script type="module" src="./playground.js"></script>
 </body>
 </html>

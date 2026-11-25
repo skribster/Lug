@@ -30,7 +30,7 @@ void FreeArray(VMCore& vm, T* array, std::size_t currentCapacity) {
     // the new size to 0. We have to route all memory functions to
     // Reallocate because the VM needs to keep track of how mnay bytes
     // it allocates so it knows when to garbage collect.
-    (T*)Reallocate(vm, array, sizeof(T) * currentCapacity, 0);
+    Reallocate(vm, array, sizeof(T) * currentCapacity, 0);
 }
 
 
