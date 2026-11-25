@@ -1,51 +1,17 @@
-box NumWrapper <- thing {
-    data <- 0
-}
+print("Hello, world!")
+box Dog <- thing
+Dog.new <- function(name, age, sound)
+    box newDog <- thing of Dog
+    newDog.name <- name,
+    newDog.age <- age,
+    newDog.sound <- sound
 
-NumWrapper.new <- function(data)
-    return thing of NumWrapper {
-        data <- data
-    }
+    return newDog
 end
 
-
-NumWrapper.__equal__ <- function(shared self, shared other)
-    return self.data = other.data
+Dog.speak <- function(shared self)
+    print(self.name + " says " + self.sound + "!")
 end
 
-
-NumWrapper.__greater__ <- function(shared self, shared other)
-    return self.data > other.data
-end
-
-
-NumWrapper.__greater_equal__ <- function(shared self, shared other)
-    return self.data >= other.data
-end
-
-
-NumWrapper.__less__ <- function(shared self, shared other)
-    return self.data < other.data
-end
-
-
-NumWrapper.__less_equal__ <- function(shared self, shared other)
-    return self.data <= other.data
-end
-
-
-box a <- NumWrapper.new(2)
-box b <- NumWrapper.new(3)
-
-print(a = b) // expect: false
-print(a > b) // expect: false
-print(a < b) // expect: true
-print(a >= b) // expect: false
-print(a <= b) // expect: true
-
-box c <- NumWrapper.new(2)
-print(a = c) // expect: true
-print(a > c) // expect: false
-print(a < c) // expect: false
-print(a >= c) // expect: true
-print(a <= c) // expect: true
+box buddy <- Dog.new("Buddy", 8, "bark")
+buddy:speak()

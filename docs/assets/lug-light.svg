@@ -20,10 +20,10 @@
       }
     </style>
   </defs>
-  <rect class="st0" x="-.5" y="-.5" width="64" height="64"/>
-  <rect class="st3" x="-.5" y="-.5" width="64" height="22.24"/>
-  <rect class="st2" x="-.5" y="9.53" width="64" height="1.41"/>
-  <polygon class="st1" points="9.34 47.15 9.32 47.21 9.32 47.15 9.34 47.15"/>
-  <polygon class="st1" points="10.48 47.15 10.48 47.21 10.46 47.15 10.48 47.15"/>
-  <polygon class="st1" points="11.43 44.69 2.61 59.97 20.24 59.97 11.43 44.69"/>
+  <rect class="st0" width="64" height="64"/>
+  <rect class="st3" width="64" height="22.24"/>
+  <rect class="st2" y="10.03" width="64" height="1.41"/>
+  <polygon class="st1" points="9.84 47.65 9.82 47.71 9.82 47.65 9.84 47.65"/>
+  <polygon class="st1" points="10.98 47.65 10.98 47.71 10.96 47.65 10.98 47.65"/>
+  <polygon class="st1" points="11.93 45.19 3.11 60.47 20.74 60.47 11.93 45.19"/>
 </svg>

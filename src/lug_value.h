@@ -4,6 +4,7 @@
 #include <type_traits>
 
 #include "lug_vector.h"
+#include "lug_variant.hpp"
 
 namespace Lug {
 

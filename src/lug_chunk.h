@@ -5,11 +5,11 @@
 #include "lug_vector.h"
 #include "lug_lexer.h"
 
-// Forward declaration for VMCore since
-// we need it for memory operations
 
 namespace Lug {
     
+// Forward declaration for VMCore since
+// we need it for memory operations
 class VMCore;
 struct ObjThing;
 

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="index.css">
+    
+    <title>Lug</title>
+</head>
+<body>
+    <header class="navbar">
+        <nav>
+            <a href="index.html"><img src="./assets/lug-dark.svg" alt="Lug icon" class="navbar-icon"></a>
+            <ul>
+                <li><a href="#about">About</a></li>
+                <li><a href="#why">Why Lug</a></li>
+                <li><a href="#why">Releases</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="hero">
+            <img src="./assets/lug-light.svg" id="hero-sideicon">
+
+            <div class="hero-info">
+                <h1>Lug</h1>
+                <p>
+                    A simple, embeddable, easy-to-learn language that leans heavily 
+                    into the 'box' metaphor.
+                </p>
+                <a id="releases-button" href="#releases">Releases</a>
+            </div>
+        </section>
+
+        <section id="about">
+            <div class="about-info">
+                <h1>About</h1>
+                <strong>
+                    Take Lua's simple syntax and mix it with Python's intuitiveness.
+                </strong>
+                <p>
+                    Lug is based on the 'box' metaphor commonly used to teach beginner 
+                    programming concepts, with the language's semantics aiming to be 
+                    predictable and consistent to newcomers.
+                </p>
+            </div>
+            
+            <aside>
+                <pre class="code-snippet"><code><pre><code><span class="fn">print</span>(<span class="str">"Hello, world!"</span>)
+
+<span class="kw">box</span> Dog <span class="op">&lt;-</span> <span class="kw">thing</span>
+Dog.<span class="fn">new</span> <span class="op">&lt;-</span> <span class="kw">function</span>(name, age, sound)
+    <span class="kw">box</span> newDog <span class="op">&lt;-</span> <span class="kw">thing</span> <span class="kw">of</span> Dog
+    newDog.name <span class="op">&lt;-</span> name
+    newDog.age <span class="op">&lt;-</span> age
+    newDog.sound <span class="op">&lt;-</span> sound
+
+    <span class="kw">return</span> newDog
+<span class="kw">end</span>
+
+Dog.<span class="fn">speak</span> <span class="op">&lt;-</span> <span class="kw">function</span>(<span class="kw">shared</span> self)
+    <span class="fn">print</span>(self.name <span class="op">+</span> <span class="str">" says "</span> <span class="op">+</span> self.sound <span class="op">+</span> <span class="str">"!"</span>)
+<span class="kw">end</span>
+
+<span class="kw">box</span> buddy <span class="op">&lt;-</span> Dog.<span class="fn">new</span>(<span class="str">"Buddy"</span>, <span class="num">8</span>, <span class="str">"bark"</span>)
+buddy:<span class="fn">speak</span>()</code></pre></code></pre>
+            </aside>
+        </section>
+
+        <section id="why">
+            <h1>Why Lug?</h1>
+            <ul class="why-reasons">
+                <li class="why-reason">
+                    <h2>Lug is easy to follow.</h2>
+                    <p>
+                        Lug is designed to feel approachable without making your code's 
+                        behavior a mystery. Its central 'box' metaphor gives beginners
+                        and newcomers a simple and concrete way to visualize how values 
+                        are passed around. All with a friendly and readable syntax.
+                    </p>
+                </li>
+                <li class="why-reason">
+                    <h2>Lug is embeddable.</h2>
+                    <p>
+                        Lug is built in the widely-available C++17 standard, making it
+                        embeddable in most modern C++ projects. Any application can create
+                        a Lug virtual machine, utliizing its friendly C++ API, and run Lug 
+                        code without relying on the standalone interpreter.
+                    </p>
+                </li>
+                <li class="why-reason">
+                    <h2>Lug is small.</h2>
+                    <p>
+                        Lug aims to keep its language and runtime focused rather than 
+                        overwhelming users with a large, complicated system. Lug's binaries 
+                        are less than half of a megabyte. The source code is also written in 
+                        plain C++ without too much of the complicated or obscure syntax that 
+                        may plague other C++ projects today. 
+                    </p>
+                </li>
+                <li class="why-reason">
+                    <h2>Lug is powerful.</h2>
+                    <p>
+                        Lug is small, but that doesn't stop it from being powerful. Although
+                        Lug is prototypal in its core design, it supports a multitude of 
+                        paradigms while allowing more complex ways to interact with your
+                        program. For instance, there is a simple but powerful structure in Lug called a 
+                        'thing', but it lets you have complex metaprogramming and even a familiar
+                        OOP structure.
+                    </p>
+                </li>
+            </ul>
+        </section>
+
+        <!-- <section id="releases">
+            <h1>Releases</h1>
+
+        </section> -->
+    </main>
+</body>
+</html>
