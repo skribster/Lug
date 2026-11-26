@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-2022
 
     strategy:
       fail-fast: false
@@ -16,7 +16,6 @@ jobs:
       matrix:
         os: [windows-latest]
         build_type: [Release]
-        c_compiler: [gcc, clang, cl]
         include:
           - name: msvc
             c_compiler: cl
@@ -25,23 +24,16 @@ jobs:
           - name: clang
             c_compiler: clang
             cpp_compiler: clang++
-            generator: Ninja
+            generator: "-G Ninja"
           - name: mingw
             c_compiler: gcc
             cpp_compiler: g++
-            generator: Ninja
+            generator: "-G Ninja"
 
     steps:
     - uses: actions/checkout@v4
       with: 
         submodules: recursive
-
-    - name: Set reusable strings
-      # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
-      id: strings
-      shell: bash
-      run: |
-        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -49,7 +41,7 @@ jobs:
       run: >
         cmake 
         -B build
-        -G ${{ matrix.generator }}
+        ${{ matrix.generator }}
         -S ${{ github.workspace }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
@@ -65,7 +57,7 @@ jobs:
 
     - name: Package
       working-directory: build
-      run: cpack -G ZIP -C Release -D CPACK_PACKAGE_FILE_NAME=lug-${{ github.ref_name }}-windows-x64-${{ matrix.name }}
+      run: cpack -G ZIP -C Release -D CPACK_PACKAGE_FILE_NAME=lug-windows-x64-${{ matrix.name }}
 
     - uses: actions/upload-artifact@v4
       with:
