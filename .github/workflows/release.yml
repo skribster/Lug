@@ -21,7 +21,7 @@ jobs:
           - name: msvc
             c_compiler: cl
             cpp_compiler: cl
-            generator: Visual Studio 17 2022
+            generator: ""
           - name: clang
             c_compiler: clang
             cpp_compiler: clang++
@@ -33,6 +33,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with: 
+        submodules: recursive
 
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
@@ -47,6 +49,7 @@ jobs:
       run: >
         cmake 
         -B build
+        -G ${{ matrix.generator }}
         -S ${{ github.workspace }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
@@ -66,7 +69,6 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
-        submodules: recursive
         name: ${{ matrix.name }}
         path: build/*.zip
         if-no-files-found: error
