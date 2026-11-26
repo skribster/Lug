@@ -9,6 +9,8 @@
 /CMakeFiles/
 .clangd
 
+program.lug
+
 *.dir
 
 # User-specific files

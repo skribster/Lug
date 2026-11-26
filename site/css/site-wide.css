@@ -37,23 +37,24 @@ body {
     background-color: var(--primary-color);
     font-family: 'DM Sans', 'Courier New', Courier, monospace;
     line-height: 1.5;
-}
 
-.page-content {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 3rem 2rem;
+    /* make header stick to bottom */
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
 }
 
 main {
     max-width: none;
     margin: 0;
     padding: 0;
+    flex-grow: 1;
 }
 
 a {
     color: var(--pen);
     text-decoration: none;
+    font-weight: 700;
 }
 
 h1 {
@@ -107,6 +108,7 @@ h1::before {
         position: relative;
         color: inherit;
         white-space: nowrap;
+        font-weight: normal;
     }
 
     @media (min-width: 768px) {
@@ -153,7 +155,6 @@ h1::before {
 }
 
 .button-prominent {
-    margin: 1rem 0;
     padding: 1rem 5rem;
     border: 3px dotted var(--primary-color);
 }

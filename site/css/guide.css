@@ -1,7 +1,3 @@
-.lesson {
-    max-width: 1024px;
-    margin: 0 auto;
-}
 
 .lesson h2,
 .lesson h3 {
@@ -41,4 +37,12 @@
 .lesson code {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.9em;
+}
+
+.card {
+    h1, h2, h3, h4, h5, h6 {
+        margin-top: 0;
+    }
+
+    margin: 1rem 0;
 }

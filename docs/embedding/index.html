@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embedding</title>
+    <link rel="stylesheet" href="/css/site-wide.css">
+    <link rel="stylesheet" href="/css/guide.css">
+    <link rel="icon" type="image/svg+xml" href="/assets/lug-light.svg">
+
+</head>
+<body>
+    <header class="navbar">
+    <nav>
+        <a href="/index.html"><img src="/assets/lug-dark.svg" alt="Lug icon" class="navbar-icon"></a>
+        <ul>
+            <li><a href="/getting-started/index.html">Getting Started</a></li>
+            <li><a href="/playground/index.html">Playground</a></li>
+            <li><a href="/features/index.html">Features</a></li>
+            <li><a href="/embedding/index.html">Embedding</a></li>
+        </ul>
+    </nav>
+</header>
+    
+    <main class="page-content">
+        <article class="lesson page-section">
+            <h1>Embedding</h1>
+            <p>Lug is designed to be a language that you can easily embed in other modern C++ projects,
+compatible with <strong>C++17 and up</strong>. Lug's C++ API was also designed to be easy to work with.
+If you are familiar with the <a href="https://github.com/thephd/sol2">Lua wrapper sol2</a>,
+the shape of Lug's API is very reminiscent of that.</p>
+<h2>Including Lug</h2>
+<p>Firstly, grab yourself a stable release from the repository. These binaries are static libraries that you
+can link to your C++ project.</p>
+<p>Install the static library that is compatible with your C++ compiler. For instance, if you're compiling
+your code with GCC/G++, install the binary for <em>MinGW</em>. For Clang, install... well... the <em>Clang</em> version.
+Simple enough?</p>
+<div style="display: flex; flex-direction: column; padding: 1rem; gap: 0.5rem;">
+    <a class="button button-prominent" href="https://github.com/skribster/Lug/" rel="noopener noreferrer" target="_blank">Source</a>
+    <a class="button button-prominent" href="https://github.com/skribster/Lug/releases" rel="noopener noreferrer" target="_blank">Releases</a>
+</div>
+<h3>CMake Approach</h3>
+<p>Fortunately for us poor souls that still suffer through CMake, Lug is very much compatible
+with your CMake project! When you drag the binary folder over to your project, adding Lug is as simple
+as adding <strong>two lines</strong> to your top-level CMakeLists.txt.</p>
+<p>Say we have this basic CMakeLists.txt:</p>
+<pre><code>cmake_minimum_required(VERSION 3.23)
+project(Project VERSION 0.1.0 LANGUAGES C CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED 17)
+
+add_executable(Project main.cpp)
+</code></pre>
+<p>We'll simply find the Lug package and link the library over to our project.
+Add these two lines at the end:</p>
+<pre><code>find_package(lug CONFIG REQUIRED)
+target_link_libraries(Project PRIVATE lug::lug_core)
+</code></pre>
+<p>Finally, when we're creating our build folder for the first time, we'll pass in
+the location of our library folder as a flag.</p>
+<pre><code>cmake -S . -B build -DCMAKE_PREFIX_PATH=&quot;path/to/Lug/binary&quot;
+</code></pre>
+<p>The prefix path can also be a generic vendor/ directory that contains your Lug folder,
+which I prefer when structuring projects with multiple libraries.</p>
+<h3>Other Approaches</h3>
+<p>For other systems, you're gonna have to follow whatever method you use to link static libraries.
+Each binary comes supplied with three directories:</p>
+<ul>
+<li>bin/</li>
+<li>include/</li>
+<li>lib/</li>
+</ul>
+<p>The lib/ directory has the actual static library (.lib) file. The include/ directory has all the
+public headeres for the Lug C++ API. For IDEs like Visual Studio, it's as
+simple as adding the static library to your project's additional libraries, and adding
+the includes to your additional includes.</p>
+<p>There's also the option to directly compile the source with your existing project. You can download
+the source from the Lug <a href="https://github.com/skribster/Lug">GitHub repository</a>, and compile everything
+with your project.</p>
+<p>All the implementation details for the language live in the src/ folder, and your public
+headers are in the include/ folder. Lug has no third party dependencies, so you don't need to
+worry about any extra steps other than that.</p>
+<h2>Creating a VM</h2>
+<p>The first step in incorporating Lug into your project is to include the public header.</p>
+<pre><code>#include &lt;lug.hpp&gt;
+</code></pre>
+<p>Let's now create a Lug virtual machine. Somewhere in your code, create a Lug::VM.</p>
+<pre><code>Lug::VM vm;
+</code></pre>
+<p>What's best is that Lug::VM follows C++ RAII, and so you don't have to do any kind of manual
+cleanup after you're done like how you would have to do for C-based libraries.</p>
+<p>Our new VM is completely empty, and not even the standard libraries are loaded in yet. How can
+we load them in? Lug::VM has a member function called LoadLibraries which takes in a Lug::LibInclude
+enum.</p>
+<pre><code>vm.LoadLibraries(Lug::LibInclude::ALL);
+</code></pre>
+<p>LibInclude specifies the libraries we want to include in our VM. For this case, we're saying that we
+want to include all the built-in standard libraries.</p>
+<p>LibInclude can also be combined with the '|' operator to act as kind of a whitelist of libraries.
+In this example, we'll load in only three libraries and ignore the rest.</p>
+<pre><code>vm.LoadLibraries(Lug::LibInclude::BASE | Lug::LibInclude::MATH | Lug::LibInclude::COLLECTION);
+</code></pre>
+<p>Now you're ready to execute some code!</p>
+<h2>Executing Code</h2>
+<p>A Lug::VM has two methods to interpret code.</p>
+<p>The first option is Lug::VM::Interpret, which expects a string of Lug code, like this.</p>
+<pre><code>Lug::InterpretResult result = vm.Interpret(&quot;print(\&quot;Hello, world!\&quot;)&quot;)
+</code></pre>
+<p>You can also directly pass in a path to a file with Lug::VM::InterpretFile.
+The VM will read the file's contents and execute it.</p>
+<pre><code>const std::filesystem::path&amp; pathToScript = ...;
+Lug::InterpretResult result = vm.InterpretFile(pathToScript)
+</code></pre>
+<p>Both cases return a Lug::InterpretResult, which tells you whether or not your program succeeded or
+decided to error on you. If the program failed during compilation, it'll return a
+Lug::InterpretResult::COMPILE_ERROR. During runtime, a Lug::InterpretResult::RUNTIME_ERROR. There's also
+Lug::InterpretResult::MEMORY_ERROR, which, if you get it, you know something definitely screwed up.</p>
+<pre><code>if (result == Lug::InterpretResult::OK) {
+    std::cout &lt;&lt; &quot;Program ran successfully.&quot; &lt;&lt; '\n';
+} else if (result == Lug::InterpretResult::COMPILE_ERROR) {
+    std::cout &lt;&lt; &quot;Compilation error.&quot; &lt;&lt; '\n'
+} else if (result == Lug::InterpretResult::RUNTIME_ERROR) {
+    std::cout &lt;&lt; &quot;Runtime error.&quot; &lt;&lt; '\n'
+} else if (result == Lug::InterpretResult::MEMORY_ERROR) {
+    std::cout &lt;&lt; &quot;Memory error.&quot; &lt;&lt; '\n'
+}
+</code></pre>
+<h2>Basic Example (Lug Wrapper)</h2>
+<pre><code>#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include &lt;fstream&gt;
+#include &lt;ostream&gt;
+#include &lt;sstream&gt;
+
+#include &lt;lug.hpp&gt;
+
+namespace fs = std::filesystem;
+
+static void OnError(const Lug::Error&amp; error) {
+    std::cerr &lt;&lt; error.Format() &lt;&lt; std::endl;
+}
+
+
+static void Repl(Lug::VM&amp; vm) {
+    std::cout &lt;&lt; &quot;Lug Interactive REPL\n&quot;;
+
+    std::string line;
+    while (true) {
+        std::cout &lt;&lt; &quot;&gt; &quot;;
+        std::getline(std::cin, line);
+
+        if (line.empty()) break;
+
+        Lug::InterpretResult result = vm.Interpret(line, &quot;repl&quot;);
+    }
+}
+
+
+static std::string ReadFile(std::string_view path) {
+    std::ifstream file(path.data());
+    if (!file.is_open()) {
+        std::cerr &lt;&lt; &quot;could not open file: &quot; &lt;&lt; path &lt;&lt; std::endl;
+        exit(74);
+    }
+
+    // Read the entire file buffer into a string stream
+    std::ostringstream buffer;
+    buffer &lt;&lt; file.rdbuf();
+
+    return buffer.str();
+}
+
+
+static void RunFile(Lug::VM&amp; vm, std::string_view path) {
+    Lug::InterpretResult result = vm.InterpretFile(path);
+
+    if (result == Lug::InterpretResult::OK) return;
+
+    // Exit codes consistent with the Unix sysexits.h standard
+    if (result == Lug::InterpretResult::COMPILE_ERROR) exit(65);
+    if (result == Lug::InterpretResult::FILE_ERROR) exit(66);
+    if (result == Lug::InterpretResult::RUNTIME_ERROR) exit(70);
+    if (result == Lug::InterpretResult::MEMORY_ERROR) exit(1);
+}
+
+
+int main(int argc, char* argv[]) {
+    Lug::VMConfig config;
+    config.errorFn = OnError;
+
+    Lug::VM vm(config);
+    vm.LoadLibrary(Lug::LibInclude::ALL);
+
+    if (argc == 1) {
+        Repl(vm);
+    } else if (argc == 2) {
+        RunFile(vm, argv[1]);
+    } else {
+        std::cerr &lt;&lt; &quot;usage: lug [path]\n&quot;;
+        exit(64);
+    }
+
+    return 0;
+}
+</code></pre>
+
+        </article>
+    </main>
+
+    <footer class="site-footer">
+    ♥ made with love by <a href="https://github.com/skribster" rel="noopener noreferrer" target="_blank">@skribster</a> :-)
+</footer>
+</body>
+</html>

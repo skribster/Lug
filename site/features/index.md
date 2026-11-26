@@ -1,6 +1,6 @@
 ---
 title: Features
-layout: learn.njk
+layout: guide.njk
 ---
 
 ## Primitives
@@ -79,6 +79,35 @@ foreach letter at index in letters do
 end
 ```
 
+### Inspect
+```
+box PlayerState <- category
+    IDLE,
+    WALK,
+    RUN,
+    MIDAIR,
+    DASH
+end
+
+box state <- PlayerState.RUN // expect: Player is moving.
+
+inspect state
+    when PlayerState.IDLE do
+        print("Player is not moving.")
+    end
+
+    when PlayerState.WALK
+    when PlayerState.RUN
+    when PlayerState.DASH do
+        print("Player is moving.")
+    end
+
+    when PlayerState.MIDAIR do
+        print("Player is midair.")
+    end
+end
+```
+
 ## Functions
 ```
 box add <- function(a, b)
@@ -98,6 +127,8 @@ print(fib(35))
 ```
 
 ## Collections
+
+### Lists
 ```
 box list <- [1, 2, 3, 4, 5]
 box matrix <- [
@@ -113,6 +144,8 @@ print(list[-1]) // 5
 list[1] <- "Two"
 print(list[1]) // Two
 ```
+
+### Dictionaries
 ```
 box dict <- {
     "a" <- 1,
@@ -125,6 +158,50 @@ box dict <- {
 print(dict["a"]) // 1
 print(dict["b"]) // 2
 dict["e"] <- 5
+```
+
+## Categories
+```
+box Fruit <- category 
+    BANANA,
+    APPLE,
+    ORANGE,
+    STRAWBERRY,
+    BLUEBERRY,
+    MANGO
+end
+
+// Categories behave as numbers
+print(Fruit.BANANA)     // expect: 0
+print(Fruit.APPLE)      // expect: 1
+print(Fruit.ORANGE)     // expect: 2
+print(Fruit.STRAWBERRY) // expect: 3
+print(Fruit.BLUEBERRY)  // expect: 4
+print(Fruit.MANGO)      // expect: 5
+```
+
+```
+box Level <- category
+    LOW <- 10,
+    LOW_2,
+    LOW_3,
+    MEDIUM <- 20,
+    MEDIUM_2,
+    MEDIUM_3,
+    HIGH <- 30,
+    HIGH_2,
+    HIGH_3
+end
+
+print(Level.LOW)        // expect: 10
+print(Level.LOW_2)      // expect: 11
+print(Level.LOW_3)      // expect: 12
+print(Level.MEDIUM)     // expect: 20
+print(Level.MEDIUM_2)   // expect: 21
+print(Level.MEDIUM_3)   // expect: 22
+print(Level.HIGH)       // expect: 30
+print(Level.HIGH_2)     // expect: 31
+print(Level.HIGH_3)     // expect: 32
 ```
 
 ## Things

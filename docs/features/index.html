@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Features</title>
     <link rel="stylesheet" href="/css/site-wide.css">
-    <link rel="stylesheet" href="/css/learn.css">
+    <link rel="stylesheet" href="/css/guide.css">
     <link rel="icon" type="image/svg+xml" href="/assets/lug-light.svg">
 
 </head>
@@ -14,14 +14,16 @@
     <nav>
         <a href="/index.html"><img src="/assets/lug-dark.svg" alt="Lug icon" class="navbar-icon"></a>
         <ul>
+            <li><a href="/getting-started/index.html">Getting Started</a></li>
             <li><a href="/playground/index.html">Playground</a></li>
-            <li><a href="/features/index.html" target="_blank" rel="noopener noreferrer">Features</a></li>
+            <li><a href="/features/index.html">Features</a></li>
+            <li><a href="/embedding/index.html">Embedding</a></li>
         </ul>
     </nav>
 </header>
     
     <main class="page-content">
-        <article class="lesson">
+        <article class="lesson page-section">
             <h1>Features</h1>
             <h2>Primitives</h2>
 <pre><code>// number
@@ -82,6 +84,33 @@ foreach letter at index in letters do
     print(index, letter)
 end
 </code></pre>
+<h3>Inspect</h3>
+<pre><code>box PlayerState &lt;- category
+    IDLE,
+    WALK,
+    RUN,
+    MIDAIR,
+    DASH
+end
+
+box state &lt;- PlayerState.RUN // expect: Player is moving.
+
+inspect state
+    when PlayerState.IDLE do
+        print(&quot;Player is not moving.&quot;)
+    end
+
+    when PlayerState.WALK
+    when PlayerState.RUN
+    when PlayerState.DASH do
+        print(&quot;Player is moving.&quot;)
+    end
+
+    when PlayerState.MIDAIR do
+        print(&quot;Player is midair.&quot;)
+    end
+end
+</code></pre>
 <h2>Functions</h2>
 <pre><code>box add &lt;- function(a, b)
     return a + b
@@ -97,6 +126,7 @@ end
 print(fib(35))
 </code></pre>
 <h2>Collections</h2>
+<h3>Lists</h3>
 <pre><code>box list &lt;- [1, 2, 3, 4, 5]
 box matrix &lt;- [
     [1, 2],
@@ -111,6 +141,7 @@ print(list[-1]) // 5
 list[1] &lt;- &quot;Two&quot;
 print(list[1]) // Two
 </code></pre>
+<h3>Dictionaries</h3>
 <pre><code>box dict &lt;- {
     &quot;a&quot; &lt;- 1,
     &quot;b&quot; &lt;- 2,
@@ -122,6 +153,46 @@ print(list[1]) // Two
 print(dict[&quot;a&quot;]) // 1
 print(dict[&quot;b&quot;]) // 2
 dict[&quot;e&quot;] &lt;- 5
+</code></pre>
+<h2>Categories</h2>
+<pre><code>box Fruit &lt;- category 
+    BANANA,
+    APPLE,
+    ORANGE,
+    STRAWBERRY,
+    BLUEBERRY,
+    MANGO
+end
+
+// Categories behave as numbers
+print(Fruit.BANANA)     // expect: 0
+print(Fruit.APPLE)      // expect: 1
+print(Fruit.ORANGE)     // expect: 2
+print(Fruit.STRAWBERRY) // expect: 3
+print(Fruit.BLUEBERRY)  // expect: 4
+print(Fruit.MANGO)      // expect: 5
+</code></pre>
+<pre><code>box Level &lt;- category
+    LOW &lt;- 10,
+    LOW_2,
+    LOW_3,
+    MEDIUM &lt;- 20,
+    MEDIUM_2,
+    MEDIUM_3,
+    HIGH &lt;- 30,
+    HIGH_2,
+    HIGH_3
+end
+
+print(Level.LOW)        // expect: 10
+print(Level.LOW_2)      // expect: 11
+print(Level.LOW_3)      // expect: 12
+print(Level.MEDIUM)     // expect: 20
+print(Level.MEDIUM_2)   // expect: 21
+print(Level.MEDIUM_3)   // expect: 22
+print(Level.HIGH)       // expect: 30
+print(Level.HIGH_2)     // expect: 31
+print(Level.HIGH_3)     // expect: 32
 </code></pre>
 <h2>Things</h2>
 <pre><code>box cat &lt;- thing

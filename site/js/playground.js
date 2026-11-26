@@ -22,6 +22,29 @@ end
 box start <- clock()
 print(fib(35))
 print(clock() - start)`)
+
+exampleCode.set("Fizzbuzz", `box fizzBuzz <- function(length)
+    box res <- []
+    count i from 1 to length do
+        if i % 3 = 0 and i % 5 = 0 then
+            res:append("fizzbuzz")
+        elseif i % 3 = 0 then
+            res:append("fizz")
+        elseif i % 5 = 0 then
+            res:append("buzz")
+        else
+            res:append(string(i))
+        end
+    end
+
+    return res
+end
+
+box res <- fizzBuzz(20)
+
+foreach s in res do
+    print(s)
+end`)
 exampleCode.set("Sieve of Eratosthenes", `box sieve <- function(n)
     box flags <- []
     count i from 0 to n do
@@ -48,7 +71,6 @@ print(sieve(200000))
 print(clock() - start)`)
 
 exampleCode.set("OOP Example", `box Dog <- thing // Create a new thing and stuff it inside the container Dog
-    
 // User-defined constructor
 Dog.new <- function(name, age, sound)
     /* 

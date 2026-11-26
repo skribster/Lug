@@ -34,8 +34,9 @@
     rotate: -2deg;
 }
 
-#releases-button {
+#start-button {
     align-self: auto;
+    margin: 1rem 0;
 
     @media (min-width: 768px) {
         align-self: flex-start;

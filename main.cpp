@@ -4,7 +4,7 @@
 #include <ostream>
 #include <sstream>
 
-#include "lug.hpp"
+#include <lug.hpp>
 
 namespace fs = std::filesystem;
 

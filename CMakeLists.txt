@@ -96,7 +96,7 @@ if(BUILD_WEBSITE)
 
     set_target_properties(lug_website PROPERTIES
         OUTPUT_NAME "lug-website"
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/docs"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/site/js"
     )
 endif()
 
