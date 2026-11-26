@@ -14,8 +14,6 @@ jobs:
       fail-fast: false
 
       matrix:
-        os: [windows-latest]
-        build_type: [Release]
         include:
           - name: msvc
             c_compiler: cl
@@ -45,7 +43,7 @@ jobs:
         -S ${{ github.workspace }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
-        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DCMAKE_BUILD_TYPE=Release
         -DBUILD_TESTING=ON
 
     - name: Build
@@ -57,7 +55,7 @@ jobs:
 
     - name: Package
       working-directory: build
-      run: cpack -G ZIP -C Release -D CPACK_PACKAGE_FILE_NAME=lug-windows-x64-${{ matrix.name }}
+      run: cpack -G ZIP -C Release -D CPACK_PACKAGE_FILE_NAME=lug-${{ github.ref_name }}-windows-x64-${{ matrix.name }}
 
     - uses: actions/upload-artifact@v4
       with:
