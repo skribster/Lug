@@ -1,0 +1,57 @@
+.playground {
+    label {
+        font-weight: 700;
+    }
+
+    textarea {
+        resize: vertical;
+    }
+
+    button {
+        justify-self: start;
+    }
+}
+
+.playground-editor {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0 auto;
+}
+
+textarea, #playground-output {
+    width: 100%;
+    min-height: 12rem;
+    padding: 1rem;
+    border: 1px solid var(--tertiary-color);
+    border-radius: 4px;
+    background-color: #fff;
+    color: var(--ink);
+    font: 0.9rem/1.5 'JetBrains Mono', monospace;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+#playground-examples {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    li {
+        list-style-type: none;
+        display: flex;
+        align-items: center;
+    }
+
+    .playground-example {
+        background-color: var(--tertiary-color);
+        width: 100%;
+        text-align: center;
+        padding: 1rem;
+        border: 4px double var(--primary-color);
+        color: inherit;
+    }
+}

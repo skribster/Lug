@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/css/site-wide.css">
+    <link rel="stylesheet" href="/css/playground.css">
+    <link rel="icon" type="image/svg+xml" href="/assets/lug-light.svg">
+
+    <title>Lug Playground</title>
+</head>
+<body>
+    <header class="navbar">
+    <nav>
+        <a href="/index.html"><img src="/assets/lug-dark.svg" alt="Lug icon" class="navbar-icon"></a>
+        <ul>
+            <li><a href="/playground/index.html">Playground</a></li>
+            <li><a href="/features/index.html" target="_blank" rel="noopener noreferrer">Features</a></li>
+        </ul>
+    </nav>
+</header>
+
+    <main><section id="playground" class="playground page-section">
+        <h1>Playground</h1>
+
+        <h2>Examples:</h2>
+        <ul id="playground-examples">
+            <li><a class="button playground-example">Hello World</a></li>
+            <li><a class="button playground-example">Loop</a></li>
+            <li><a class="button playground-example">Fibonacci</a></li>
+            <li><a class="button playground-example">Sieve of Eratosthenes</a></li>
+            <li><a class="button playground-example">OOP Example</a></li>
+        </ul>
+
+        <div class="playground-editor">
+            <div class="playground-"></div>
+            <label for="playground-input">Source code</label>
+            <textarea id="playground-input" spellcheck="false">print("Hello, world!")</textarea>
+            <button id="playground-run" class="button" type="button">Run</button>
+            <label for="playground-output">Output</label>
+            <pre id="playground-output">...</pre>
+        </div>
+        <!-- the code for the playground is here -->
+        <script type="module" src="/js/playground.js"></script>
+    </section></main>
+
+    <footer class="site-footer">
+    ♥ made with love by <a href="https://github.com/skribster" rel="noopener noreferrer" target="_blank">@skribster</a> :-)
+</footer>
+</body>
+</html>

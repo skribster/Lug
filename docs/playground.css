@@ -1,0 +1,36 @@
+.playground {
+    label {
+        font-weight: 700;
+    }
+
+    textarea {
+        resize: vertical;
+    }
+
+    button {
+        justify-self: start;
+    }
+}
+
+.playground-editor {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0 auto;
+}
+
+textarea, #playground-output {
+    width: 100%;
+    min-height: 12rem;
+    padding: 1rem;
+    border: 1px solid var(--tertiary-color);
+    border-radius: 4px;
+    background-color: #fff;
+    color: var(--ink);
+    font: 0.9rem/1.5 'JetBrains Mono', monospace;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.playground-examples {
+    
+}

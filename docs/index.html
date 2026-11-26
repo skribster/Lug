@@ -4,27 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <link rel="stylesheet" href="index.css">
-    <link rel="icon" type="image/svg+xml" href="./assets/lug-light.svg">
+    <link rel="stylesheet" href="/css/site-wide.css">
+    <link rel="stylesheet" href="/css/index.css">
+    <link rel="icon" type="image/svg+xml" href="/assets/lug-light.svg">
 
     <title>Lug</title>
 </head>
 <body>
     <header class="navbar">
-        <nav>
-            <a href="index.html"><img src="./assets/lug-dark.svg" alt="Lug icon" class="navbar-icon"></a>
-            <ul>
-                <li><a href="#about">About</a></li>
-                <li><a href="#why">Why Lug</a></li>
-                <li><a href="#playground">Playground</a></li>
-                <li><a href="https://github.com/skribster/Lug/releases" target="_blank" rel="noopener noreferrer">Releases</a></li>
-            </ul>
-        </nav>
-    </header>
+    <nav>
+        <a href="/index.html"><img src="/assets/lug-dark.svg" alt="Lug icon" class="navbar-icon"></a>
+        <ul>
+            <li><a href="/playground/index.html">Playground</a></li>
+            <li><a href="/features/index.html" target="_blank" rel="noopener noreferrer">Features</a></li>
+        </ul>
+    </nav>
+</header>
 
     <main>
-        <section id="hero">
-            <img src="./assets/lug-light.svg" id="hero-sideicon">
+        <section id="hero" class="page-section">
+            <img src="/assets/lug-light.svg" id="hero-sideicon" alt="Lug icon">
 
             <div class="hero-info">
                 <h1>Lug</h1>
@@ -32,11 +31,11 @@
                     A simple, embeddable, easy-to-learn language that leans heavily 
                     into the 'box' metaphor.
                 </p>
-                <a id="releases-button" a href="https://github.com/skribster/Lug/releases" target="_blank" rel="noopener noreferrer"> Releases</a>
+                <a id="releases-button" class="button button-prominent" href="https://github.com/skribster/Lug/releases" target="_blank" rel="noopener noreferrer">Releases</a>
             </div>
         </section>
 
-        <section id="about">
+        <section id="about" class="page-section">
             <div class="about-info">
                 <h1>About</h1>
                 <p>
@@ -69,10 +68,10 @@ buddy:<span class="fn">speak</span>()</code></pre></code></pre>
             </aside>
         </section>
 
-        <section id="why">
+        <section id="why" class="page-section">
             <h1>Why Lug?</h1>
-            <ul class="why-reasons">
-                <li class="why-reason">
+            <ul class="why-reasons card-grid">
+                <li class="why-reason card">
                     <h2>Lug is easy to follow.</h2>
                     <p>
                         Lug is designed to feel approachable without making your code's 
@@ -81,7 +80,7 @@ buddy:<span class="fn">speak</span>()</code></pre></code></pre>
                         are passed around. All with a friendly and readable syntax.
                     </p>
                 </li>
-                <li class="why-reason">
+                <li class="why-reason card">
                     <h2>Lug is embeddable.</h2>
                     <p>
                         Lug is built in the widely-available C++17 standard, making it
@@ -90,7 +89,7 @@ buddy:<span class="fn">speak</span>()</code></pre></code></pre>
                         code without relying on the standalone interpreter.
                     </p>
                 </li>
-                <li class="why-reason">
+                <li class="why-reason card">
                     <h2>Lug is small.</h2>
                     <p>
                         Lug aims to keep its language and runtime focused rather than 
@@ -100,7 +99,7 @@ buddy:<span class="fn">speak</span>()</code></pre></code></pre>
                         may plague other C++ projects today. 
                     </p>
                 </li>
-                <li class="why-reason">
+                <li class="why-reason card">
                     <h2>Lug is powerful.</h2>
                     <p>
                         Lug is small, but that doesn't stop it from being powerful. Although
@@ -114,23 +113,9 @@ buddy:<span class="fn">speak</span>()</code></pre></code></pre>
             </ul>
         </section>
 
-        <section id="playground" class="playground">
-            <h1>Playground</h1>
-            <div class="playground-editor">
-                <div class="playground-"></div>
-                <label for="playground-input">Source code</label>
-                <textarea id="playground-input" spellcheck="false">print("Hello, world!")</textarea>
-                <button id="playground-run" type="button">Run</button>
-                <label for="playground-output">Output</label>
-                <pre id="playground-output">...</pre>
-            </div>
-        </section>
-
-        <footer>
-            made with love by <a href="https://github.com/skribster" rel="noopener noreferrer" target="_blank">@skribster</a> :-)
-        </footer>
+        <footer class="site-footer">
+    ♥ made with love by <a href="https://github.com/skribster" rel="noopener noreferrer" target="_blank">@skribster</a> :-)
+</footer>
     </main>
-    <!-- the code for the playground is here -->
-    <script type="module" src="./playground.js"></script>
 </body>
 </html>

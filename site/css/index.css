@@ -1,0 +1,75 @@
+/* Homepage sections */
+#hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--secondary-color);
+
+    h1 {
+        font-size: 4rem;
+    }
+
+    .hero-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        width: 60%;
+        text-align: center;
+    }
+
+    @media (min-width: 768px) {
+        flex-direction: row;
+        gap: 5rem;
+
+        .hero-info {
+            width: 100%;
+            text-align: left;
+        }
+    }
+}
+
+#hero-sideicon {
+    width: 30%;
+    rotate: -2deg;
+}
+
+#releases-button {
+    align-self: auto;
+
+    @media (min-width: 768px) {
+        align-self: flex-start;
+    }
+}
+
+#about {
+    display: block;
+
+    @media (min-width: 768px) {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .about-info {
+        margin-bottom: 2rem;
+    }
+}
+
+#why {
+    background-color: var(--secondary-color);
+    text-align: center;
+
+    h1 {
+        margin-bottom: 2rem;
+    }
+}
+
+.why-reason {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    list-style-type: none;
+}

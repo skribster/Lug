@@ -1,17 +1,12 @@
-print("Hello, world!")
-box Dog <- thing
-Dog.new <- function(name, age, sound)
-    box newDog <- thing of Dog
-    newDog.name <- name,
-    newDog.age <- age,
-    newDog.sound <- sound
+box sum <- function(args...) // All variadic args get packed into one list.
+    print(type(args)) // list
 
-    return newDog
+    box total <- 0
+    foreach value at index in args do
+        total <- total + value
+    end
+
+    return total
 end
 
-Dog.speak <- function(shared self)
-    print(self.name + " says " + self.sound + "!")
-end
-
-box buddy <- Dog.new("Buddy", 8, "bark")
-buddy:speak()
+print(sum(10, 20, 30)) // 60`

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Features</title>
+    <link rel="stylesheet" href="/css/site-wide.css">
+    <link rel="stylesheet" href="/css/learn.css">
+    <link rel="icon" type="image/svg+xml" href="/assets/lug-light.svg">
+
+</head>
+<body>
+    <header class="navbar">
+    <nav>
+        <a href="/index.html"><img src="/assets/lug-dark.svg" alt="Lug icon" class="navbar-icon"></a>
+        <ul>
+            <li><a href="/playground/index.html">Playground</a></li>
+            <li><a href="/features/index.html" target="_blank" rel="noopener noreferrer">Features</a></li>
+        </ul>
+    </nav>
+</header>
+    
+    <main class="page-content">
+        <article class="lesson">
+            <h1>Features</h1>
+            <h2>Primitives</h2>
+<pre><code>// number
+print(123)         
+
+// string
+print(&quot;double quoted&quot;) 
+print('single quoted') 
+
+// boolean
+print(true)
+print(false)
+
+// nil
+print(nil)
+</code></pre>
+<h2>Variables</h2>
+<pre><code>box a &lt;- 10
+print(a) // 10
+
+box b &lt;- a
+print(b) // 10
+</code></pre>
+<pre><code>// Lexical scoping works too.
+
+box a &lt;- &quot;outer&quot;
+print(a) // outer
+
+do
+    box a &lt;- &quot;inner&quot;
+    print(a) // inner
+end
+</code></pre>
+<h2>Control flow</h2>
+<h3>If</h3>
+<pre><code>box money &lt;- 10
+box cost &lt;- 5
+
+if money &lt; cost then
+    print(&quot;You don't have enough to buy this item.&quot;)
+elseif money &gt;= cost then
+    print(&quot;Bought item!&quot;)
+    money &lt;- money - cost
+end
+</code></pre>
+<h3>Count</h3>
+<pre><code>count incrementer2 from 0 to 10 do
+    if incrementer2 = 5 then
+        continue
+    end
+    
+    print(incrementer2)
+end
+</code></pre>
+<h3>Foreach</h3>
+<pre><code>box letters &lt;- ['a', 'b', 'c', 'd', 'e']
+foreach letter at index in letters do
+    print(index, letter)
+end
+</code></pre>
+<h2>Functions</h2>
+<pre><code>box add &lt;- function(a, b)
+    return a + b
+end
+
+print(add(1, 2))
+</code></pre>
+<pre><code>box fib &lt;- function(n)
+    if n &lt; 2 then return n end
+    return fib(n - 2) + fib(n - 1)
+end
+
+print(fib(35))
+</code></pre>
+<h2>Collections</h2>
+<pre><code>box list &lt;- [1, 2, 3, 4, 5]
+box matrix &lt;- [
+    [1, 2],
+    [3, 4],
+    [5, 6]
+]
+
+print(list[0]) // 1
+print(list[2]) // 3
+print(list[-1]) // 5
+
+list[1] &lt;- &quot;Two&quot;
+print(list[1]) // Two
+</code></pre>
+<pre><code>box dict &lt;- {
+    &quot;a&quot; &lt;- 1,
+    &quot;b&quot; &lt;- 2,
+    &quot;c&quot; &lt;- 3,
+    &quot;d&quot; &lt;- 4
+}
+
+
+print(dict[&quot;a&quot;]) // 1
+print(dict[&quot;b&quot;]) // 2
+dict[&quot;e&quot;] &lt;- 5
+</code></pre>
+<h2>Things</h2>
+<pre><code>box cat &lt;- thing
+cat.name &lt;- &quot;Whiskers&quot;
+cat.age &lt;- 5
+print(cat.name) // Whiskers
+
+cat.meow &lt;- function(self)
+    print(self.name + &quot; meows :-)&quot;)
+end
+
+cat.meow(cat)
+// passes itself as the first parameter
+cat:meow() 
+</code></pre>
+<h2>Pass-by-value Semantics</h2>
+<pre><code>box numberList &lt;- [1, 2, 3, 4, 5]
+
+// numberList copies here
+box numberListCopy &lt;- numberList
+numberListCopy:append(6)
+print(numberList) // prints [1, 2, 3, 4, 5]
+</code></pre>
+<h2>Sharing</h2>
+<pre><code>// You can share an object's reference and store it
+box numberListRef &lt;- share numberList
+numberListRef:append(6)
+print(numberList) // prints [1, 2, 3, 4, 5, 6]
+</code></pre>
+<pre><code>// Functions can also take in refs
+box appendList &lt;- function(list)
+    list:append(&quot;appended&quot;)
+end
+
+box testList &lt;- [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;e&quot;]
+appendList(testList)
+print(testList) // [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;e&quot;]
+appendList(share testList) // share the value.
+print(testList) // [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;e&quot;, &quot;appended&quot;]
+</code></pre>
+<pre><code>// Functions can force the user to pass a shareable
+box popList &lt;- function(shared list)
+    list:pop()
+end
+
+box testList2 &lt;- [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;e&quot;]
+popList(share testList2)
+popList(testList2) // runtime error: expected shared argument at argument 1
+</code></pre>
+<h2>Variadic arguments</h2>
+<pre><code>box sum &lt;- function(args...) // All variadic args get packed into one list.
+    print(type(args)) // list
+
+    box total &lt;- 0
+    foreach value at index in args do
+        total &lt;- total + value
+    end
+
+    return total
+end
+
+print(sum(10, 20, 30)) // 60
+</code></pre>
+<h2>Default arguments</h2>
+<pre><code>// default args must be at the end 
+box greet &lt;- function(name, greeting &lt;- &quot;Hello&quot;)
+    print(greeting + &quot; &quot; + name)
+end
+
+greet(&quot;Jason&quot;) // Hello Jason
+greet(&quot;Bob&quot;, &quot;Hi&quot;) // Hi Bob
+print(&quot;Charlie&quot;, &quot;Welcome&quot;) // Welcome Charlie
+</code></pre>
+<h2>Metaprogramming</h2>
+<pre><code>// 'thing's can have dunder methods that affect
+// its behavior in the code.
+
+box Animal &lt;- thing
+Animal.name &lt;- &quot;unknown&quot;
+Animal.age &lt;- 0
+
+box Dog &lt;- thing
+
+// lookup chain, if Dog.__proto != nil and we try
+// to access an attribute that Dog doesn't have, it
+// tries looking it up in its proto (Animal).
+Dog.__proto__ &lt;- share Animal
+print(Dog.name) // &quot;default&quot;
+Dog.name &lt;- &quot;Rex&quot;
+print(Dog.name) // &quot;Rex&quot;
+
+// Shorthand syntax for __proto__:
+box Dog &lt;- thing of Animal
+print(Dog.name) // &quot;default&quot;
+</code></pre>
+<pre><code>// Other dunder examples:
+
+// {} is syntactic sugar for setting attributes
+box Vec3 &lt;- thing {
+    x &lt;- 0,
+    y &lt;- 0,
+    z &lt;- 0
+}
+
+
+Vec3.new &lt;- function(x, y, z)
+    return thing of Vec3 {
+        x &lt;- x,
+        y &lt;- y,
+        z &lt;- z
+    }
+end
+
+
+Vec3.__add__ &lt;- function(shared self, shared other)
+    if type(other) != &quot;thing&quot; or other.__proto__ != Vec3 then   
+        error(&quot;can't add Vec3 with &quot; + type(other))
+    end
+    
+    return Vec3.new(self.x + other.x, self.y + other.y, self.z + other.z)
+end
+
+Vec3.__subtract__ &lt;- function(shared self, shared other)
+    if type(other) != &quot;thing&quot; or other.__proto__ != Vec3 then   
+        error(&quot;can't add Vec3 with &quot; + type(other))
+    end
+    
+    return Vec3.new(self.x - other.x, self.y - other.y, self.z - other.z)
+end
+
+Vec3.__multiply__ &lt;- function(shared self, shared other)
+    if type(other) != &quot;thing&quot; or other.__proto__ != Vec3 then   
+        error(&quot;can't add Vec3 with &quot; + type(other))
+    end
+    
+    return Vec3.new(self.x * other.x, self.y * other.y, self.z * other.z)
+end
+
+Vec3.__divide__ &lt;- function(shared self, shared other)
+    if type(other) != &quot;thing&quot; or other.__proto__ != Vec3 then   
+        error(&quot;can't add Vec3 with &quot; + type(other))
+    end
+    
+    return Vec3.new(self.x / other.x, self.y / other.y, self.z / other.z)
+end
+
+
+Vec3.__tostring__ &lt;- function(shared self)
+    return &quot;Vec3(&quot; + string(self.x) + &quot;, &quot; + string(self.y) + &quot;, &quot; + string(self.z) + &quot;)&quot;
+end
+
+
+box a &lt;- Vec3.new(1, 4, 9)
+box b &lt;- Vec3.new(4, 2, 1)
+
+print(a) // Vec3(1, 4, 9)
+print(b) // Vec3(4, 2, 1)
+print(a + b) // expect: Vec3(5, 6, 10)
+print(a - b) // expect: Vec3(-3, 2, 8)
+print(a * b) // expect: Vec3(4, 8, 9)
+print(a / b) // expect: Vec3(0.25, 2, 9)
+</code></pre>
+<h2>Including Files</h2>
+<pre><code>box MathUtils &lt;- thing
+
+MathUtils.add &lt;- function(a, b)
+    return a + b
+end
+
+return MathUtils
+</code></pre>
+<pre><code>// in other file...
+box MathUtils &lt;- unbox(&quot;path/to/MathUtils.lug&quot;)
+print(MathUtils.add(1, 2)) // 3
+</code></pre>
+
+        </article>
+    </main>
+
+    <footer class="site-footer">
+    ♥ made with love by <a href="https://github.com/skribster" rel="noopener noreferrer" target="_blank">@skribster</a> :-)
+</footer>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "name": "lugbyte",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "start": "eleventy --serve",
+    "build": "eleventy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skribster/Lug.git"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/skribster/Lug/issues"
+  },
+  "homepage": "https://github.com/skribster/Lug#readme",
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.8"
+  }
+}
