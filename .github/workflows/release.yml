@@ -60,7 +60,7 @@ jobs:
 
     - name: Package
       working-directory: build
-      run: cpack
+      run: cpack -G ZIP -C Release -D CPACK_PACKAGE_FILE_NAME=lug-${{ github.ref_name }}-windows-x64-${{ matrix.name }}
 
     - uses: actions/upload-artifact@v4
       with:
