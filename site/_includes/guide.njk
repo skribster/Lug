@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
+    <title>{{ title }} - Lug</title>
     <link rel="stylesheet" href="/css/site-wide.css">
     <link rel="stylesheet" href="/css/guide.css">
     <link rel="icon" type="image/svg+xml" href="/assets/lug-light.svg">
@@ -12,7 +12,22 @@
 <body>
     {% include "header.njk" %}
     
-    <main class="page-content">
+    <main class="page-content {%if tags %}has-sidebar{% endif %}">
+        {% if tags %}
+        <aside class="sidebar"><nav class="page-list">
+            {% set firstTag = tags if (tags is string) else (tags | first) %}
+            {% set matchingCollection = collections[firstTag] %}
+
+            <h3>Nav Links</h3>
+
+            <ul>
+            {% for item in matchingCollection %}
+                <li><a href="{{ item.url }}">{{ item.data.title }}</a></li>
+            {% endfor %}
+            </ul>
+        </nav></aside>
+        {% endif %}
+
         <article class="lesson page-section">
             <h1>{{ title }}</h1>
             {{ content | safe }}

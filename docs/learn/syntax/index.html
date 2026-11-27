@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syntax - Lug</title>
+    <link rel="stylesheet" href="/css/site-wide.css">
+    <link rel="stylesheet" href="/css/guide.css">
+    <link rel="icon" type="image/svg+xml" href="/assets/lug-light.svg">
+
+</head>
+<body>
+    <header class="navbar">
+    <nav>
+        <a href="/index.html"><img src="/assets/lug-dark.svg" alt="Lug icon" class="navbar-icon"></a>
+        <ul>
+            <li><a href="/getting-started/index.html">Getting Started</a></li>
+            <li><a href="/learn/index.html">Learn</a></li>
+            <li><a href="/playground/index.html">Playground</a></li>
+            <li><a href="/features/index.html">Features</a></li>
+            <li><a href="/embedding/index.html">Embedding</a></li>
+        </ul>
+    </nav>
+</header>
+    
+    <main class="page-content has-sidebar">
+        
+        <aside class="sidebar"><nav class="page-list">
+            
+            
+
+            <h3>Nav Links</h3>
+
+            <ul>
+            
+                <li><a href="/learn/">Learn</a></li>
+            
+                <li><a href="/learn/syntax/">Syntax</a></li>
+            
+                <li><a href="/learn/values/">Values</a></li>
+            
+                <li><a href="/learn/functions/">Functions</a></li>
+            
+            </ul>
+        </nav></aside>
+        
+
+        <article class="lesson page-section">
+            <h1>Syntax</h1>
+            <p>Lug's syntax aims for simplicity, and should feel
+familiar to langauges like Ruby or Lua.</p>
+<h2>Comments</h2>
+<p>You can make comments on code with double slashes. <code>(//)</code></p>
+<pre><code>// This is a comment!
+</code></pre>
+<p>There are also block comments which span multiple lines. Begin
+a block comment with <code>/*</code> and end in <code>*/</code> .</p>
+<pre><code>/*
+    This comment 
+    spans multiple 
+    lines...
+
+    /*
+        They can also be
+        nested too!
+    */
+*/
+</code></pre>
+<h2>Whitespace</h2>
+<p>Tabs and newlines have no effect on the code flow at all.
+Theoretically, you could have an entire program listed in one
+giant line like this:</p>
+<pre><code>box a &lt;- 10 print(a) box add &lt;- function(x, y) return x + y end print(add(4, 5))
+</code></pre>
+<p>Obviously, that's ugly. Which is why it's best practice to
+separate statements with newlines in your code.</p>
+<pre><code>box a &lt;- 10
+print(a)
+
+box add &lt;- function(x, y)
+    return x + y
+end
+
+print(add(4, 5))
+</code></pre>
+<p>Or if you really have to, I like using semicolons to denote the separation of
+two statements in the same line.</p>
+<pre><code>box a &lt;- 2; print(a)
+</code></pre>
+<p>It's optional, however, and semicolons really don't have an effect on the flow
+of code other than that.</p>
+<h2>Grammar</h2>
+<p>For the nerdier people who are more experienced in reading formal grammar,
+here's the full grammar of Lug written in Extended
+<a href="https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form">Backus-Naur Form.</a></p>
+<pre><code>/* Statements */
+statement           ::= box
+                      | print
+                      | break
+                      | continue
+                      | block
+                      | if
+                      | while
+                      | for
+                      | count
+
+box                 ::= 'box' identifier_list '&lt;-' expression_list
+break               ::= 'break'
+continue            ::= 'continue'
+block               ::= statement* ( 'return' expression )?
+if                  ::= 'if' expression 'then' block ('elseif' expression 'then' block)* ('else' block)? 'end'
+while               ::= 'while' expression 'do' block 'end'
+for                 ::= 'foreach' IDENTIFIER ( 'at' IDENTIFIER )? 'in' expression 'do' block 'end'
+count               ::= 'count' IDENTIFIER 'from' expression '...' expression 'by' expression 'do' block 'end'
+inspect             ::= &quot;inspect&quot; expression ( &quot;when&quot; expression ( &quot;when&quot; expression )* &quot;do&quot; block &quot;end&quot; )* ( &quot;else&quot; block &quot;end&quot; )? &quot;end&quot;
+
+/* Expressions */
+expression          ::= ternary
+ternary             ::= logic_or '?' expression ':' ternary
+logic_or            ::= logic_and ('or' logic_and)*
+logic_and           ::= equality ('and' equality)*
+equality            ::= comparison ( ('!=' | '=') comparison )* 
+comparison          ::= term ( ('&gt;' | '&gt;=' | '&lt;' | '&lt;=') term )*
+term                ::= factor ( ('-' | '+') factor )*
+factor              ::= unary ( ('*' | '/') unary )*
+unary               ::= ( ('share' | 'not' | '-') unary ) | primary
+postfix             ::= primary ( &quot;[&quot; expression &quot;]&quot; | &quot;.&quot; IDENTIFIER | &quot;(&quot; arguments? &quot;)&quot; )*
+primary             ::= 'null' 
+                      | BOOLEAN
+                      | NUMBER
+                      | STRING
+                      | IDENTIFIER
+                      | '(' expression ')'
+                      | function
+                      | list
+                      | dictionary
+                      | thing
+
+function            ::= 'function' '(' parameters? ')' block 'end'
+list                ::= '[' expression_list? ']'
+dictionary          ::= '{' keyvalue_list? '}'
+thing               ::= 'thing' ( 'of' expression )?
+
+/* Utility rules */
+arguments           ::= expression ( ',' expression )*
+parameters          ::= parameter ( ',' parameter )*
+parameter           ::= 'shared'? IDENTIFIER ('&lt;-' expression)?
+
+expression_list     ::= expression (',' expression)*
+identifier_list     ::= IDENTIFIER (',' IDENTIFIER)*
+keyvalue_list       ::= keyvalue_pair (',' keyvalue_pair)*
+keyvalue_pair       ::= (primary '&lt;-' expression) | ('[' expression ']' '&lt;-' expression)
+
+NUMBER              ::= DIGIT+ ( '.' DIGIT+ )? ;
+STRING              ::= ('&quot;' ALPHA* '&quot;') | (&quot;'&quot; ALPHA* &quot;'&quot;)
+IDENTIFIER          ::= ALPHA ( ALPHA | DIGIT )* 
+ALPHA               ::= 'a' ... 'z' | 'A' ... 'Z' | '_'
+DIGIT               ::= '0' ... '9'
+BOOLEAN             ::= 'true' | 'false'
+</code></pre>
+
+        </article>
+    </main>
+
+    <footer class="site-footer">
+    ♥ made with love by <a href="https://github.com/skribster" rel="noopener noreferrer" target="_blank">@skribster</a> :-)
+</footer>
+</body>
+</html>

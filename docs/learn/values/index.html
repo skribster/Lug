@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Values - Lug</title>
+    <link rel="stylesheet" href="/css/site-wide.css">
+    <link rel="stylesheet" href="/css/guide.css">
+    <link rel="icon" type="image/svg+xml" href="/assets/lug-light.svg">
+
+</head>
+<body>
+    <header class="navbar">
+    <nav>
+        <a href="/index.html"><img src="/assets/lug-dark.svg" alt="Lug icon" class="navbar-icon"></a>
+        <ul>
+            <li><a href="/getting-started/index.html">Getting Started</a></li>
+            <li><a href="/learn/index.html">Learn</a></li>
+            <li><a href="/playground/index.html">Playground</a></li>
+            <li><a href="/features/index.html">Features</a></li>
+            <li><a href="/embedding/index.html">Embedding</a></li>
+        </ul>
+    </nav>
+</header>
+    
+    <main class="page-content has-sidebar">
+        
+        <aside class="sidebar"><nav class="page-list">
+            
+            
+
+            <h3>Nav Links</h3>
+
+            <ul>
+            
+                <li><a href="/learn/">Learn</a></li>
+            
+                <li><a href="/learn/syntax/">Syntax</a></li>
+            
+                <li><a href="/learn/values/">Values</a></li>
+            
+                <li><a href="/learn/functions/">Functions</a></li>
+            
+            </ul>
+        </nav></aside>
+        
+
+        <article class="lesson page-section">
+            <h1>Values</h1>
+            <p>Lug is a dynamically typed language, which means you don't have to specify
+each type of a value yourself. Each value carries its own type.</p>
+<p>There are four basic primitive types in Lug:</p>
+<ul>
+<li>Nil</li>
+<li>Number</li>
+<li>Boolean</li>
+<li>String</li>
+</ul>
+<p>The other types, such as functions, lists, dictionaries, and things,
+are a little more complex, and I think they all deserve their own chapters.</p>
+<p>Anyway, we'll go over the basic primitive types in order, starting off with...</p>
+<h2>Nil</h2>
+<p>While every other type represents an actual value, nil is the opposite.
+It means the absence of a value. As such, it's commonly used in places
+where you expect a value but return nothing.</p>
+<p>For instance, a function without any return statement returns 'nil'
+implicitly, because it didn't return any value.</p>
+<pre><code>box doSomething &lt;- function()
+    print(&quot;I'm doing something!&quot;)
+end
+
+box returned &lt;- doSomething()
+print(returned) // nil
+</code></pre>
+<h2>Number</h2>
+<p>Numbers are... well, <em>numbers.</em> All number values represent a double-precision
+floating point number. Lug has no integer type.</p>
+<p>Number literals are what you'd expect from any other scripting language. They can
+have an optional decimal part, and even an optional exponent part. These are all
+valid number literals in the Lug language:</p>
+<pre><code>5
+-3.1415926
+1.2e16
+8e+23
+2.61e-4
+</code></pre>
+<h2>Boolean</h2>
+<p>The boolean type represents two values: <code>true</code> and <code>false.</code> They come useful in
+representing a two-state (true or false) value or make a yes/no decision. As we'll go
+over later in another lesson, booleans play their part in control flow, where Lug checks
+if the expression inside a conditional is 'true'.</p>
+<pre><code>box x &lt;- 5
+
+// Since x = 5 is true, then the inner body will run.
+if x = 5 then
+    ...
+end
+</code></pre>
+<p>However, do note that any value can represent a condition! Lua recognizes all values
+except false and nil as truthy, and everything else falsy. That means you can write
+some weird stuff like this:</p>
+<pre><code>box a &lt;- nil
+if a then
+    // won't run...
+end
+
+a &lt;- 10
+if a then
+    // will run, because a is &quot;truthy&quot;, neither false nor nil
+end
+</code></pre>
+<h2>String</h2>
+<p>Strings are values that hold a piece of text information.</p>
+<p>You can make a string literal by matching single or double quotes:</p>
+<pre><code>&quot;this is a valid string literal&quot;
+'this is too!'
+</code></pre>
+<p>Strings also support C-like escape sequences. Let's say you have a
+string literal where the literal itself has quotes inside of it. You can
+escape those quotes with backslashes:</p>
+<pre><code>&quot;I said &quot;Hello&quot;&quot; // invalid, the second quote will close the first one
+&quot;I said \&quot;Hello\&quot;&quot; // valid!!!
+</code></pre>
+<p>How about a table? Here's all of the available escape sequences that Lug offers:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Escape-sequence</th>
+<th style="text-align:left">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">\0</td>
+<td style="text-align:left">null-terminator</td>
+</tr>
+<tr>
+<td style="text-align:left">\</td>
+<td style="text-align:left">backslash</td>
+</tr>
+<tr>
+<td style="text-align:left">\a</td>
+<td style="text-align:left">bell*</td>
+</tr>
+<tr>
+<td style="text-align:left">\b</td>
+<td style="text-align:left">backspace</td>
+</tr>
+<tr>
+<td style="text-align:left">\e</td>
+<td style="text-align:left">ESC character</td>
+</tr>
+<tr>
+<td style="text-align:left">\f</td>
+<td style="text-align:left">formfeed</td>
+</tr>
+<tr>
+<td style="text-align:left">\n</td>
+<td style="text-align:left">newline</td>
+</tr>
+<tr>
+<td style="text-align:left">\r</td>
+<td style="text-align:left">carriage return</td>
+</tr>
+<tr>
+<td style="text-align:left">\t</td>
+<td style="text-align:left">tab</td>
+</tr>
+<tr>
+<td style="text-align:left">\v</td>
+<td style="text-align:left">vertical tab</td>
+</tr>
+</tbody>
+</table>
+<p><em><small><center>*A lot of these are useless. What's the bell for????</center></small></em></p>
+
+        </article>
+    </main>
+
+    <footer class="site-footer">
+    ♥ made with love by <a href="https://github.com/skribster" rel="noopener noreferrer" target="_blank">@skribster</a> :-)
+</footer>
+</body>
+</html>

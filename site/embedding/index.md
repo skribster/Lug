@@ -1,6 +1,7 @@
 ---
 title: Embedding
 layout: guide.njk
+tags: embedding
 ---
 
 Lug is designed to be a language that you can easily embed in other modern C++ projects, 

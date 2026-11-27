@@ -1,42 +1,55 @@
+.lesson  {
+    h2,
+    h3 {
+        margin: 2rem 0 0.75rem;
+        color: var(--accent-color);
+        font-family: 'Trocchi', serif;
+    }
 
-.lesson h2,
-.lesson h3 {
-    margin: 2rem 0 0.75rem;
-    color: var(--accent-color);
-    font-family: 'Trocchi', serif;
-}
+    p,
+    ul,
+    ol,
+    blockquote {
+        margin: 0 0 1rem;
+    }
 
-.lesson p,
-.lesson ul,
-.lesson ol,
-.lesson blockquote {
-    margin: 0 0 1rem;
-}
+    ul,
+    ol {
+        padding-left: 1.5rem;
+    }
 
-.lesson ul,
-.lesson ol {
-    padding-left: 1.5rem;
-}
+    pre {
+        max-width: 100%;
+        overflow-x: auto;
 
-.lesson pre {
-    max-width: 100%;
-    overflow-x: auto;
+        padding: 2rem;
+        margin: 1rem 0;
 
-    padding: 2rem;
-    margin: 1rem 0;
+        border: 1px solid var(--tertiary-color);
+        border-radius: 3px;
+        background-color: #f9fbfe;
+        font-family: 'JetBrains Mono', monospace;
+        line-height: 1.2;
+        text-align: left;
+    }
 
-    border: 1px solid var(--tertiary-color);
-    border-radius: 3px;
-    background-color: #f9fbfe;
-    font-family: 'JetBrains Mono', monospace;
-    line-height: 1.2;
-    text-align: left;
-}
+    code {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.9em;
+    }
 
+    table {
+        border: 1px dashed var(--dark-color);
+        margin: 0 auto;
+    }
 
-.lesson code {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.9em;
+    th, td {
+        padding: 0.5rem 1rem;
+    }
+
+    thead {
+        background-color: var(--secondary-color);
+    }
 }
 
 .card {
@@ -45,4 +58,83 @@
     }
 
     margin: 1rem 0;
+}
+
+
+.sidebar {
+    min-width: 0;
+    margin: 1rem 1rem 0;
+    padding: 1rem;
+    background-color: var(--secondary-color);
+    
+    h3 {
+        text-align: center;
+        color: var(--accent-color);
+        margin-bottom: 0.5rem;
+    }
+
+    ul {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        overflow-x: auto;
+        list-style-type: none;
+        padding-bottom: 0.25rem;
+    }
+
+    li {
+        display: flex;
+        list-style-type: none;
+    }
+
+    a {
+        background-color: var(--primary-color);
+        display: block;
+        padding: 0.5rem 1rem;
+    }
+
+    a:hover,
+    a:focus-visible {
+        background-color: var(--tertiary-color);
+    }
+}
+
+
+@media (min-width: 768px) {
+    .page-content.has-sidebar {
+        display: grid;
+        grid-template-columns: 14rem minmax(0, 768px);
+        justify-content: center;
+        gap: 2rem;
+    }
+
+    .page-content.has-sidebar .lesson.page-section {
+        padding: 4rem 0;
+        padding-right: 1rem;
+    }
+
+    .sidebar {
+        align-self: start;
+        position: sticky;
+        top: 6rem;
+        margin: 0;
+        padding-top: 4rem;
+        padding-left: 1rem;
+        border: 0;
+        border-radius: 0;
+        background-color: transparent;
+
+        h3 {
+            text-align: left;
+        }
+
+        ul {
+            display: block;
+            overflow: visible;
+        }
+
+        a {
+            background-color: transparent;
+        }
+    }
 }

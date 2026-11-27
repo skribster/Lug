@@ -18,15 +18,6 @@ static void OnError(const Lug::Error& error) {
 }
 
 
-static std::optional<fs::path> OnResolve(fs::path importer, const fs::path requested) {
-    fs::path path = fs::path("bootstrap/") / requested;
-    path.replace_extension(".lug");
-    if (!fs::is_regular_file(path)) return std::nullopt;
-
-    return path;
-}
-
-
 static void Repl(Lug::VM& vm) {
     std::cout << "Lug Interactive REPL\n";
 
@@ -72,7 +63,6 @@ static void RunFile(Lug::VM& vm, std::string_view path) {
 
 int main(int argc, char* argv[]) {
     Lug::VMConfig config;
-    config.resolveModuleFn = OnResolve;
     config.errorFn = OnError;
 
     Lug::VM vm(config);

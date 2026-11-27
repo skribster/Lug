@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Functions - Lug</title>
+    <link rel="stylesheet" href="/css/site-wide.css">
+    <link rel="stylesheet" href="/css/guide.css">
+    <link rel="icon" type="image/svg+xml" href="/assets/lug-light.svg">
+
+</head>
+<body>
+    <header class="navbar">
+    <nav>
+        <a href="/index.html"><img src="/assets/lug-dark.svg" alt="Lug icon" class="navbar-icon"></a>
+        <ul>
+            <li><a href="/getting-started/index.html">Getting Started</a></li>
+            <li><a href="/learn/index.html">Learn</a></li>
+            <li><a href="/playground/index.html">Playground</a></li>
+            <li><a href="/features/index.html">Features</a></li>
+            <li><a href="/embedding/index.html">Embedding</a></li>
+        </ul>
+    </nav>
+</header>
+    
+    <main class="page-content has-sidebar">
+        
+        <aside class="sidebar"><nav class="page-list">
+            
+            
+
+            <h3>Nav Links</h3>
+
+            <ul>
+            
+                <li><a href="/learn/">Learn</a></li>
+            
+                <li><a href="/learn/syntax/">Syntax</a></li>
+            
+                <li><a href="/learn/values/">Values</a></li>
+            
+                <li><a href="/learn/functions/">Functions</a></li>
+            
+            </ul>
+        </nav></aside>
+        
+
+        <article class="lesson page-section">
+            <h1>Functions</h1>
+            <p>In Lug, functions act like any other basic value! Like numbers, strings,
+lists, dicts, etc. they have their own literal syntax and can be
+passed around in boxes.</p>
+<p>An example of a function expression that, when called, returns the sum of
+two numbers is seen below:</p>
+<pre><code>function(x, y) 
+    return x + y
+end
+</code></pre>
+<p>Note that in order to actually make a function useful, per se, it's often
+necessary to store it in a name.</p>
+<pre><code>box add &lt;- function(x, y)
+    return x + y
+end
+</code></pre>
+<p>There is no special syntax for function declarations, it's merely just
+storing a function value inside a variable. Really, you will see this
+pattern come up very often in Lug, where everything revolves around this
+universal 'box' concept that can hold any value. Consistent, yes?</p>
+<p>Now the box named 'add' stores the value of our function. We can print,
+pass around, or interact with this function like any other Lug value.</p>
+<pre><code>box add2 &lt;- add
+print(add2) // &lt;fn anonymous&gt;
+
+box sum &lt;- add(1, 2)
+print(sum) // 3
+</code></pre>
+
+        </article>
+    </main>
+
+    <footer class="site-footer">
+    ♥ made with love by <a href="https://github.com/skribster" rel="noopener noreferrer" target="_blank">@skribster</a> :-)
+</footer>
+</body>
+</html>

@@ -29,7 +29,6 @@
 }
 
 html {
-    font-size: 110%;
     scroll-behavior: smooth;
 }
 
@@ -109,6 +108,10 @@ h1::before {
         color: inherit;
         white-space: nowrap;
         font-weight: normal;
+    }
+
+    a:hover {
+        color: var(--accent-color)
     }
 
     @media (min-width: 768px) {
