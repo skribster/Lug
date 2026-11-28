@@ -158,6 +158,15 @@ Token Lexer::Number() {
         while (isDigit(Peek())) Advance();
     }
 
+    // Scientific notation!
+    if (Match('e') || Match('E')) {
+        // Allow a single positive/negative exponent symbol.
+        if (!Match('+')) Match('-');
+        if (!isDigit(Peek())) LexError("unterminated scientific notation");
+
+        while (isDigit(Peek())) Advance();
+    }
+
     // Like how we did for string literals,
     // we will defer getting the literal of the
     // number later in the process instead of
